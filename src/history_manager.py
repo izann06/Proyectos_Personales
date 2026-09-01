@@ -31,7 +31,7 @@ def save_history(history):
 
 
 def add_entry(status, source_folders, destination, files_copied=0, 
-              files_skipped=0, bytes_copied=0, duration_seconds=0, errors=None):
+              files_skipped=0, bytes_copied=0, duration_seconds=0, errors=None, destination_name=""):
     """
     Añade una nueva entrada al historial de backups.
     
@@ -54,6 +54,7 @@ def add_entry(status, source_folders, destination, files_copied=0,
         "status": status,
         "source_folders": source_folders,
         "destination": destination,
+        "destination_name": destination_name,
         "files_copied": files_copied,
         "files_skipped": files_skipped,
         "bytes_copied": bytes_copied,

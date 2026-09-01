@@ -43,11 +43,11 @@ class BackupEngine:
         if self.is_running:
             return False
         
-        config = config_manager.load_config()
+        self.config = config_manager.load_config()
         
-        sources = source_folders or config.get("source_folders", [])
-        dest = destination or config.get("destination_path", "")
-        flags = robocopy_flags or config.get("robocopy_flags", "/MIR /FFT /Z /XA:H /W:5 /R:3")
+        sources = source_folders or self.config.get("source_folders", [])
+        dest = destination or self.config.get("destination_path", "")
+        flags = robocopy_flags or self.config.get("robocopy_flags", "/MIR /FFT /Z /XA:H /W:5 /R:3")
         
         if not sources:
             self._emit_status("⚠ No hay carpetas de origen configuradas.")
@@ -131,6 +131,27 @@ class BackupEngine:
     def _run_backup(self, sources, destination, flags):
         """Ejecuta el backup para todas las carpetas de origen."""
         self.is_running = True
+        try:
+            self._run_backup_inner(sources, destination, flags)
+        except Exception as e:
+            # Asegurar que SIEMPRE se llame al callback de completado
+            self.is_running = False
+            error_entry = {
+                "id": "error",
+                "status": "error",
+                "files_copied": 0,
+                "bytes_copied": 0,
+                "size_display": "0 B",
+                "duration_display": "0s",
+                "errors": [str(e)]
+            }
+            self._emit_status(f"❌ Error inesperado: {e}")
+            self._emit_progress(100, "Error", 0, 0)
+            if self._completion_callback:
+                self._completion_callback(False, error_entry)
+
+    def _run_backup_inner(self, sources, destination, flags):
+        """Lógica interna del backup."""
         start_time = time.time()
         
         total_files_copied = 0
@@ -196,8 +217,11 @@ class BackupEngine:
             entry = {
                 "id": "ignored",
                 "status": status,
-                "files": 0,
+                "files_copied": 0,
+                "files_skipped": 0,
+                "bytes_copied": 0,
                 "bytes": 0,
+                "size_display": "0 B",
                 "duration_display": "0s"
             }
             if status == "success":
@@ -207,6 +231,7 @@ class BackupEngine:
                 self._emit_status("❌ Backup cancelado.")
         else:
             # Guardar en historial
+            ssd_name = self.config.get("ssd_volume_label", "SSD")
             entry = history_manager.add_entry(
                 status=status,
                 source_folders=sources,
@@ -215,7 +240,8 @@ class BackupEngine:
                 files_skipped=total_files_skipped,
                 bytes_copied=total_bytes,
                 duration_seconds=int(duration),
-                errors=errors
+                errors=errors,
+                destination_name=ssd_name
             )
             
             if status == "success":
@@ -324,6 +350,7 @@ class BackupEngine:
                             
                         self._emit_progress(percent, f"Procesando: {file_name}", self.files_copied_so_far, self.total_files)
 
+            self._current_process.wait()
             exit_code = self._current_process.returncode
             self._current_process = None
             

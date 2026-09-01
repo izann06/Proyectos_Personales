@@ -659,6 +659,13 @@ class DarkPassengerApp(ctk.CTk):
             font=FONTS["small"], text_color=COLORS["text_secondary"]
         ).pack(side="left", padx=(0, 15))
         
+        dest = entry.get("destination_name", "")
+        if dest:
+            ctk.CTkLabel(
+                inner, text=f"💾 {dest}",
+                font=FONTS["small"], text_color=COLORS["text_dim"]
+            ).pack(side="left", padx=(0, 15))
+        
         ctk.CTkLabel(
             inner, text=entry.get("size_display", ""),
             font=FONTS["small"], text_color=COLORS["text_secondary"]
@@ -1897,7 +1904,20 @@ class DarkPassengerApp(ctk.CTk):
     
     def _update_progress(self, percent, current_file, current_count=None, total_count=None):
         """Callback: actualiza la barra de progreso (thread-safe)."""
-        self.after(0, lambda: self._do_update_progress(percent, current_file, current_count, total_count))
+        # Guardar el último estado (el hilo de backup puede llamar miles de veces)
+        self._last_progress_state = (percent, current_file, current_count, total_count)
+        
+        # Solo encolar UN after() a la vez. Si ya hay uno pendiente, no encolar otro.
+        # Esto evita saturar el event loop de tkinter con miles de callbacks.
+        if not getattr(self, '_progress_update_pending', False):
+            self._progress_update_pending = True
+            self.after(50, self._process_pending_progress)
+
+    def _process_pending_progress(self):
+        """Aplica la última actualización de progreso a la UI."""
+        self._progress_update_pending = False
+        if hasattr(self, '_last_progress_state'):
+            self._do_update_progress(*self._last_progress_state)
     
     def _do_update_progress(self, percent, current_file, current_count, total_count):
         """Actualiza la UI de progreso en el hilo principal."""
@@ -1938,6 +1958,11 @@ class DarkPassengerApp(ctk.CTk):
     
     def _do_backup_complete(self, success, entry):
         """Actualiza la UI al completar el backup."""
+        # Ocultar la tarjeta de progreso
+        if hasattr(self, 'progress_card') and self.progress_card.winfo_exists():
+            self.progress_card.pack_forget()
+        
+        # Restaurar botón de backup
         if hasattr(self, 'btn_backup'):
             self.btn_backup.configure(
                 text="▶  INICIAR BACKUP",
@@ -1947,10 +1972,11 @@ class DarkPassengerApp(ctk.CTk):
                 command=self._on_backup_click
             )
         
-        if success:
-            self._show_completion_popup(success, entry)
+        # Siempre mostrar popup de completado (éxito, error, al día)
+        self._show_completion_popup(success, entry)
         
-        # Refrescar dashboard
+        # Refrescar dashboard para actualizar estadísticas e historial
+        self.config = config_manager.load_config()
         if self.current_page == "dashboard":
             self._show_dashboard()
     
@@ -1958,19 +1984,20 @@ class DarkPassengerApp(ctk.CTk):
         """Muestra un popup temático de éxito o fallo del backup."""
         popup = ctk.CTkToplevel(self)
         popup.title("Ritual Completado" if success else "Ritual Fallido")
-        popup.geometry("400x320")
+        popup.geometry("420x380")
         popup.configure(fg_color=COLORS["bg_dark"])
         popup.transient(self)
         popup.grab_set()
         popup.attributes("-topmost", True)
+        popup.overrideredirect(True)
         
         # Centrar
         popup.update_idletasks()
-        x = (popup.winfo_screenwidth() // 2) - 200
-        y = (popup.winfo_screenheight() // 2) - 160
+        x = (popup.winfo_screenwidth() // 2) - 210
+        y = (popup.winfo_screenheight() // 2) - 190
         popup.geometry(f"+{x}+{y}")
         
-        # Borde decorativo superior
+        # Borde decorativo superior rojo
         top_bar = ctk.CTkFrame(popup, height=4, fg_color=COLORS["blood_bright"] if success else COLORS["error"], corner_radius=0)
         top_bar.pack(fill="x")
         
@@ -1981,55 +2008,81 @@ class DarkPassengerApp(ctk.CTk):
         files_copied = entry.get('files_copied', 0)
         up_to_date = success and files_copied == 0
         
-        if up_to_date:
-            icon = "🕵️‍♂️"
-            title = "Colección Intacta - Estás al día"
-            color = COLORS["blood_bright"]
-        else:
-            icon = "🩸" if success else "💀"
-            title = "Ritual Completado Exitosamente" if success else "Error en el Ritual"
-            color = COLORS["blood_bright"] if success else COLORS["error"]
+        # ── Tick rojo con círculo rojo (Canvas) ──
+        import tkinter as tk
+        icon_size = 80
+        canvas = tk.Canvas(content, width=icon_size, height=icon_size, 
+                          bg=COLORS["bg_dark"], highlightthickness=0)
+        canvas.pack(pady=(10, 8))
         
-        ctk.CTkLabel(
-            content, text=icon,
-            font=("Segoe UI Emoji", 48)
-        ).pack(pady=(10, 5))
+        if success:
+            circle_color = COLORS["blood_bright"]
+            # Círculo rojo
+            canvas.create_oval(4, 4, icon_size-4, icon_size-4, outline=circle_color, width=4)
+            # Tick (✓) dentro del círculo
+            cx, cy = icon_size // 2, icon_size // 2
+            canvas.create_line(cx-18, cy+2, cx-6, cy+14, fill=circle_color, width=4, capstyle="round")
+            canvas.create_line(cx-6, cy+14, cx+22, cy-14, fill=circle_color, width=4, capstyle="round")
+        else:
+            circle_color = COLORS["error"]
+            # Círculo rojo error
+            canvas.create_oval(4, 4, icon_size-4, icon_size-4, outline=circle_color, width=4)
+            # X dentro del círculo
+            cx, cy = icon_size // 2, icon_size // 2
+            canvas.create_line(cx-14, cy-14, cx+14, cy+14, fill=circle_color, width=4, capstyle="round")
+            canvas.create_line(cx+14, cy-14, cx-14, cy+14, fill=circle_color, width=4, capstyle="round")
+        
+        # Título
+        if up_to_date:
+            title = "Estás al día"
+            subtitle = "No había archivos nuevos que copiar.\nTu SSD está completamente sincronizado."
+        elif success:
+            title = "Ritual Completado"
+            subtitle = "Todos los archivos han sido guardados correctamente."
+        else:
+            title = "Error en el Ritual"
+            subtitle = "Hubo un problema durante el backup."
         
         ctk.CTkLabel(
             content, text=title,
-            font=("Consolas", 16, "bold"),
-            text_color=color
-        ).pack(pady=(0, 10))
+            font=("Consolas", 18, "bold"),
+            text_color=COLORS["blood_bright"] if success else COLORS["error"]
+        ).pack(pady=(0, 5))
         
+        ctk.CTkLabel(
+            content, text=subtitle,
+            font=FONTS["body"],
+            text_color=COLORS["text_secondary"],
+            justify="center"
+        ).pack(pady=(0, 12))
+        
+        # Info de estadísticas
         files = entry.get('files_copied', 0)
         size = entry.get('size_display', '0 B')
         duration = entry.get('duration_display', '0s')
         
-        info_frame = ctk.CTkFrame(content, fg_color=COLORS["bg_card"], corner_radius=8, border_width=1, border_color=COLORS["border"])
-        info_frame.pack(fill="x", pady=5)
+        if not up_to_date and files > 0:
+            info_frame = ctk.CTkFrame(content, fg_color=COLORS["bg_card"], corner_radius=8, border_width=1, border_color=COLORS["border"])
+            info_frame.pack(fill="x", pady=(0, 10))
+            
+            info_text = f"📄 Archivos: {files}   💾 Tamaño: {size}   ⏱ {duration}"
+            ctk.CTkLabel(
+                info_frame, text=info_text,
+                font=FONTS["small"],
+                text_color=COLORS["text_secondary"],
+                justify="center"
+            ).pack(padx=15, pady=10)
         
-        if up_to_date:
-            info_text = f"Todo está perfecto.\nNo había nuevas víctimas ni archivos modificados.\nTu SSD está completamente sincronizado."
-        else:
-            info_text = f"📄 Archivos guardados: {files}\n💾 Tamaño procesado: {size}\n⏱ Duración total: {duration}"
-        
-        ctk.CTkLabel(
-            info_frame,
-            text=info_text,
-            font=FONTS["body"],
-            text_color=COLORS["text_secondary"],
-            justify="left" if not up_to_date else "center"
-        ).pack(padx=20, pady=15)
-        
+        # Botón Aceptar
         ctk.CTkButton(
             content, text="Aceptar",
             font=FONTS["button"],
-            fg_color=color,
+            fg_color=COLORS["blood_bright"] if success else COLORS["error"],
             hover_color=COLORS["blood_dim"],
             text_color="white",
-            height=40, width=140, corner_radius=8,
+            height=40, width=160, corner_radius=20,
             command=popup.destroy
-        ).pack(pady=(15, 0))
+        ).pack(pady=(5, 0))
 
     # ═══════════════════════════════════════════════════════
     #  SERVICIOS EN SEGUNDO PLANO
@@ -2076,14 +2129,16 @@ class DarkPassengerApp(ctk.CTk):
         if connected and info:
             self.ssd_status_icon.configure(text_color=COLORS["success"])
             self.ssd_status_label.configure(
-                text=f"{info['label']} ({info['letter']}:)",
-                text_color=COLORS["success"]
+                text=f"{info['label']} ({info['letter']}:)\n{info['free_display']} libres",
+                text_color=COLORS["success"],
+                justify="left"
             )
         else:
             self.ssd_status_icon.configure(text_color=COLORS["blood_dim"])
             self.ssd_status_label.configure(
                 text="SSD Desconectado",
-                text_color=COLORS["text_dim"]
+                text_color=COLORS["text_dim"],
+                justify="left"
             )
     
     def _show_ssd_popup(self, ssd_info):
