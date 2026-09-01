@@ -82,6 +82,27 @@ class DarkPassengerApp(ctk.CTk):
         self.minsize(950, 600)
         self.configure(fg_color=COLORS["bg_dark"])
         
+        # ── Icono y Barra de Tareas (Windows) ──
+        try:
+            import ctypes
+            import sys
+            import os
+            
+            # Forzar a Windows a usar un icono propio en la barra de tareas en lugar del de Python
+            myappid = 'dexter.darkpassenger.backup.1.0'
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+            
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.dirname(sys.executable)
+            else:
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                
+            icon_path = os.path.join(base_dir, "app_hd.ico")
+            if os.path.exists(icon_path):
+                self.iconbitmap(icon_path)
+        except Exception:
+            pass
+        
         # Centrar ventana
         self.update_idletasks()
         x = (self.winfo_screenwidth() // 2) - (1100 // 2)
@@ -96,6 +117,9 @@ class DarkPassengerApp(ctk.CTk):
         self.current_page = "dashboard"
         self.ssd_connected = False
         self.ssd_info = None
+        
+        # ── Registrar PID para el watcher ──
+        self._acquire_app_lock()
         
         # ── Construir UI ──
         self._build_layout()
@@ -1504,8 +1528,8 @@ class DarkPassengerApp(ctk.CTk):
             self.ssd_connected = True
             self.ssd_info = ssd
             
-            # Si la app se lanzó con --ssd-popup o el SSD está conectado,
-            # mostrar el popup automáticamente
+            # Mostrar el popup si el SSD está conectado y está activado en config
+            # (El hilo vigilante ya no lo lanzará doble porque ya inicializa su estado)
             if self.config.get("show_popup_on_ssd_connect", True):
                 self.after(500, lambda: self._show_ssd_popup(ssd))
     
@@ -1529,7 +1553,27 @@ class DarkPassengerApp(ctk.CTk):
         if self.scheduler:
             self.scheduler.stop()
         
+        self._release_app_lock()
         self.destroy()
+        
+    def _acquire_app_lock(self):
+        import os
+        app_data = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "DarkPassengerBackup")
+        os.makedirs(app_data, exist_ok=True)
+        self._lock_file = os.path.join(app_data, "app.lock")
+        try:
+            with open(self._lock_file, "w") as f:
+                f.write(str(os.getpid()))
+        except Exception:
+            pass
+            
+    def _release_app_lock(self):
+        import os
+        try:
+            if hasattr(self, '_lock_file') and os.path.exists(self._lock_file):
+                os.remove(self._lock_file)
+        except Exception:
+            pass
 
 
 def main():

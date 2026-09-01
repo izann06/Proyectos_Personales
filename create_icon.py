@@ -1,7 +1,3 @@
-"""
-Genera un icono .ico para Dark Passenger Backup.
-Crea un icono con un cuchillo/gota de sangre sobre fondo negro.
-"""
 from PIL import Image, ImageDraw, ImageFont
 import os
 
@@ -9,66 +5,67 @@ def create_icon():
     sizes = [256, 128, 64, 48, 32, 16]
     images = []
     
+    # Colores
+    blood_red = (196, 30, 58, 255)
+    blood_highlight = (230, 57, 70, 200)
+    blood_shadow = (139, 0, 0, 255)
+    
     for size in sizes:
+        # Fondo transparente total
         img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
+        # Para mejorar el antialiasing, dibujamos al cuádruple de tamaño y luego reducimos
+        scale = 4
+        big_size = size * scale
+        big_img = Image.new('RGBA', (big_size, big_size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(big_img)
         
-        # Fondo circular oscuro
-        margin = int(size * 0.05)
-        draw.ellipse(
-            [margin, margin, size - margin, size - margin],
-            fill=(13, 13, 13, 255),
-            outline=(139, 0, 0, 255),
-            width=max(1, size // 32)
-        )
+        # Geometría de la gota gigante (ocupa casi todo el icono)
+        cx = big_size // 2
         
-        # Gota de sangre (forma de gota)
-        cx = size // 2
-        cy = size // 2
-        drop_h = int(size * 0.45)
-        drop_w = int(size * 0.25)
+        # El centro de la bola inferior
+        cy = int(big_size * 0.65)
+        radius = int(big_size * 0.3)
         
-        # Triángulo superior de la gota
-        top_y = cy - int(drop_h * 0.5)
-        mid_y = cy + int(drop_h * 0.1)
-        bottom_y = cy + int(drop_h * 0.5)
+        # El pico superior de la gota
+        top_y = int(big_size * 0.05)
         
-        # Dibujar la gota con polígono + elipse
+        # Puntos del triángulo que forma la punta de la gota
+        # Hacemos una curva bezier o un polígono
+        left_x = cx - radius
+        right_x = cx + radius
+        
+        # Dibujar polígono superior (punta de la gota)
         points = [
             (cx, top_y),
-            (cx + drop_w, mid_y),
-            (cx + drop_w - 2, bottom_y - drop_w // 2),
-            (cx - drop_w + 2, bottom_y - drop_w // 2),
-            (cx - drop_w, mid_y),
+            (right_x, cy),
+            (left_x, cy)
         ]
-        draw.polygon(points, fill=(196, 30, 58, 255))
         
-        # Parte redonda inferior de la gota
-        draw.ellipse(
-            [cx - drop_w, mid_y - drop_w // 2, cx + drop_w, bottom_y],
-            fill=(196, 30, 58, 255)
-        )
+        # Sombra
+        draw.polygon([(x, y+scale*2) for x, y in points], fill=blood_shadow)
+        draw.ellipse([left_x, cy - radius + scale*2, right_x, cy + radius + scale*2], fill=blood_shadow)
         
-        # Brillo pequeño en la gota
-        highlight_size = max(2, size // 16)
-        hx = cx - drop_w // 3
-        hy = mid_y + drop_w // 4
-        draw.ellipse(
-            [hx, hy, hx + highlight_size, hy + highlight_size],
-            fill=(230, 57, 70, 200)
-        )
+        # Gota principal
+        draw.polygon(points, fill=blood_red)
+        draw.ellipse([left_x, cy - radius, right_x, cy + radius], fill=blood_red)
         
+        # Brillo sutil (forma de medialuna)
+        highlight_rect = [cx - int(radius*0.6), cy - int(radius*0.6), cx - int(radius*0.2), cy + int(radius*0.2)]
+        draw.pieslice(highlight_rect, 180, 270, fill=blood_highlight)
+        
+        # Reducir imagen con Lanczos (máxima calidad antialiasing)
+        img = big_img.resize((size, size), Image.Resampling.LANCZOS)
         images.append(img)
     
     # Guardar como .ico
-    icon_path = os.path.join(os.path.dirname(__file__), "app.ico")
+    icon_path = os.path.join(os.path.dirname(__file__), "app_hd.ico")
     images[0].save(
         icon_path,
         format='ICO',
         sizes=[(s, s) for s in sizes],
         append_images=images[1:]
     )
-    print(f"Icono creado: {icon_path}")
+    print(f"Icono HD creado: {icon_path}")
     return icon_path
 
 if __name__ == "__main__":

@@ -129,7 +129,7 @@ class SSDWatcher(threading.Thread):
         self.on_ssd_disconnected = on_ssd_disconnected
         self.check_interval = check_interval
         self._stop_event = threading.Event()
-        self._ssd_was_connected = False
+        self._ssd_was_connected = bool(is_target_ssd_connected(config))
     
     def run(self):
         """Bucle principal de detección."""

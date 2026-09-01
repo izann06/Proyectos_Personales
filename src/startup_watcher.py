@@ -75,18 +75,22 @@ def is_target_ssd_connected(target_serial):
 
 
 def is_app_running():
-    """Comprueba si la aplicación principal ya está corriendo."""
-    try:
-        # Buscar procesos pythonw.exe que estén ejecutando main.py o app.py
-        result = subprocess.run(
-            ['tasklist', '/FI', 'IMAGENAME eq pythonw.exe', '/FO', 'CSV'],
-            capture_output=True, text=True, timeout=5
-        )
-        # Si hay más de un pythonw.exe corriendo (este watcher + la app)
-        count = result.stdout.count('pythonw.exe')
-        return count > 1
-    except Exception:
-        return False
+    """Comprueba si la aplicación principal ya está corriendo usando su lock file."""
+    app_lock = os.path.join(get_app_data_dir(), "app.lock")
+    if os.path.exists(app_lock):
+        try:
+            with open(app_lock, "r") as f:
+                pid = int(f.read().strip())
+            # Comprobar si el proceso de la app sigue vivo
+            result = subprocess.run(
+                ['tasklist', '/FI', f'PID eq {pid}', '/FO', 'CSV'],
+                capture_output=True, text=True, timeout=5
+            )
+            if str(pid) in result.stdout:
+                return True
+        except Exception:
+            pass
+    return False
 
 
 def acquire_lock():
