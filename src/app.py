@@ -2090,19 +2090,20 @@ class DarkPassengerApp(ctk.CTk):
         """Muestra el popup de confirmación cuando se conecta el SSD."""
         popup = ctk.CTkToplevel(self)
         popup.title("SSD Detectado")
-        popup.geometry("480x320")
+        popup.geometry("520x360")
         popup.configure(fg_color=COLORS["bg_dark"])
         popup.transient(self)
         popup.grab_set()
         popup.attributes("-topmost", True)
+        popup.overrideredirect(True)  # Eliminar bordes nativos (X, barra azul)
         
         # Centrar
         popup.update_idletasks()
-        x = (popup.winfo_screenwidth() // 2) - 240
-        y = (popup.winfo_screenheight() // 2) - 160
+        x = (popup.winfo_screenwidth() // 2) - 260
+        y = (popup.winfo_screenheight() // 2) - 180
         popup.geometry(f"+{x}+{y}")
         
-        # Borde rojo superior decorativo
+        # Borde rojo superior decorativo (La línea de arriba roja)
         top_bar = ctk.CTkFrame(popup, height=4, fg_color=COLORS["blood_bright"], corner_radius=0)
         top_bar.pack(fill="x")
         
@@ -2111,55 +2112,49 @@ class DarkPassengerApp(ctk.CTk):
         content.pack(fill="both", expand=True, padx=30, pady=20)
         
         if hasattr(self, 'img_knife_large') and self.img_knife_large:
-            ctk.CTkLabel(content, text="", image=self.img_knife_large).pack(pady=(10, 5))
+            ctk.CTkLabel(content, text="", image=self.img_knife_large).pack(pady=(10, 10))
         else:
             ctk.CTkLabel(
                 content, text="🔪",
                 font=("Segoe UI Emoji", 48)
-            ).pack(pady=(10, 5))
+            ).pack(pady=(10, 10))
         
         ctk.CTkLabel(
             content, text="El pasajero oscuro ha despertado.",
-            font=("Consolas", 16, "bold"),
+            font=("Consolas", 18, "bold"),
             text_color=COLORS["blood_bright"]
-        ).pack(pady=(0, 5))
+        ).pack(pady=(0, 10))
         
         ctk.CTkLabel(
             content,
-            text=f"SSD detectado: {ssd_info['label']} ({ssd_info['letter']}:)\n"
-                 f"Espacio libre: {ssd_info['free_display']}",
+            text=f"SSD detectado: {ssd_info['label']} ({ssd_info['letter']}:)\n",
             font=FONTS["body"],
             text_color=COLORS["text_secondary"],
             justify="center"
-        ).pack(pady=(5, 5))
+        ).pack(pady=(5, 20))
         
-        ctk.CTkLabel(
-            content, text="¿Iniciamos el backup ahora?",
-            font=FONTS["body_bold"],
-            text_color=COLORS["text_primary"]
-        ).pack(pady=(5, 15))
-        
-        # Botones
+        # Botones con estilo Neón / Redondos
         btn_frame = ctk.CTkFrame(content, fg_color="transparent")
         btn_frame.pack()
         
         ctk.CTkButton(
-            btn_frame, text="🔪  Sí, hazlo",
+            btn_frame, text="Sí, hazlo",
             font=FONTS["button"],
-            fg_color=COLORS["blood_red"],
-            hover_color=COLORS["blood_bright"],
+            fg_color=COLORS["blood_bright"],
+            hover_color="#FF4C4C",
             text_color="white",
-            height=42, width=160, corner_radius=8,
+            height=45, width=160, corner_radius=22,
+            border_width=2, border_color="#FF4C4C",
             command=lambda: self._popup_start_backup(popup)
-        ).pack(side="left", padx=(0, 10))
+        ).pack(side="left", padx=(0, 15))
         
         ctk.CTkButton(
             btn_frame, text="No, ahora no",
             font=FONTS["button"],
-            fg_color=COLORS["border_light"],
-            hover_color=COLORS["bg_card_hover"],
-            text_color=COLORS["text_secondary"],
-            height=42, width=160, corner_radius=8,
+            fg_color="#2A2A2A",
+            hover_color="#3A3A3A",
+            text_color=COLORS["text_dim"],
+            height=45, width=160, corner_radius=22,
             command=popup.destroy
         ).pack(side="left")
     
