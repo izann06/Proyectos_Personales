@@ -276,6 +276,7 @@ Este paso le dice a la app **cuál es tu disco externo** para que lo reconozca a
 | **◉ Dashboard** | *"Tonight's the night."* | Ver estadísticas, estado del sistema, iniciar backup manual, ver últimos backups |
 | **📁 Carpetas** | *"La Mesa de Trabajo"* | Añadir/quitar carpetas a copiar, seleccionar tu SSD destino |
 | **📋 Historial** | *"Las Víctimas"* | Ver el registro completo de todos los backups: fecha, archivos, tamaño, duración, errores |
+| **🏆 Trofeos** | *"La Colección de Trofeos"* | Explorar y eliminar los archivos ya copiados en el SSD. |
 | **⚙ Ajustes** | *"El Código"* | Configurar día/hora del backup, recordatorios, popup al conectar, flags de Robocopy |
 
 ---
@@ -302,8 +303,9 @@ Toda la interfaz está diseñada con la estética del universo de Dexter:
 |:---|:---|
 | **Colores** | Negro profundo `#0D0D0D`, rojo sangre `#8B0000`, carmesí `#C41E3A` |
 | **Tipografía** | `Consolas` para títulos (monoespaciada, fría), `Segoe UI` para texto |
-| **Vocabulario** | Dashboard → *"Tonight's the night"*, Carpetas → *"La Mesa de Trabajo"*, Historial → *"Las Víctimas"*, Ajustes → *"El Código"* |
-| **Iconos** | 🔪 Cuchillo, 💀 Calavera, 🩸 Gota de sangre |
+| **Vocabulario** | Dashboard → *"Tonight's the night"*, Carpetas → *"La Mesa de Trabajo"*, Historial → *"Las Víctimas"*, Trofeos → *"La Colección de Trofeos"*, Ajustes → *"El Código"* |
+| **Ilustraciones**| Exclusivo arte 16-bits (Pixel Art) en las cabeceras representando objetos de la serie (microscopio, portaobjetos, plástico, mano protésica) |
+| **Iconos** | 🔪 Cuchillo (barra de progreso), 💀 Calavera, 🩸 Gota de sangre pura (acceso directo) |
 
 ---
 

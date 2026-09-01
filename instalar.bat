@@ -45,7 +45,7 @@ if "%PROJECT_DIR:~-1%"=="\" set PROJECT_DIR=%PROJECT_DIR:~0,-1%
 
 set MAIN_SCRIPT=%PROJECT_DIR%\main.py
 set WATCHER_SCRIPT=%PROJECT_DIR%\src\startup_watcher.py
-set ICON_FILE=%PROJECT_DIR%\app_hd.ico
+set ICON_FILE=%PROJECT_DIR%\assets\images\blood_drop.ico
 
 echo  [OK] Proyecto en: %PROJECT_DIR%
 

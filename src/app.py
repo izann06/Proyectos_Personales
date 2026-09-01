@@ -97,9 +97,10 @@ class DarkPassengerApp(ctk.CTk):
             else:
                 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 
-            icon_path = os.path.join(base_dir, "app_hd.ico")
-            if os.path.exists(icon_path):
-                self.iconbitmap(icon_path)
+            if os.name == 'nt':
+                icon_path = os.path.join(base_dir, "assets", "images", "app_hd.ico")
+                if os.path.exists(icon_path):
+                    self.iconbitmap(icon_path)
         except Exception:
             pass
         
@@ -121,6 +122,39 @@ class DarkPassengerApp(ctk.CTk):
         # ── Registrar PID para el watcher ──
         self._acquire_app_lock()
         
+        # ── Cargar Recursos Gráficos ──
+        try:
+            from PIL import Image
+            import os
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            knife_path = os.path.join(base_dir, "assets", "images", "knife.png")
+            
+            self.knife_image = ctk.CTkImage(light_image=Image.open(knife_path), dark_image=Image.open(knife_path), size=(48, 48)) if os.path.exists(knife_path) else None
+            
+            # Cargar assets adicionales
+            boat_path = os.path.join(base_dir, "assets", "images", "boat.jpg")
+            desk_path = os.path.join(base_dir, "assets", "images", "desk.jpg")
+            wrap_path = os.path.join(base_dir, "assets", "images", "plastic_wrap.jpg")
+            slide_path = os.path.join(base_dir, "assets", "images", "blood_slide.jpg")
+            hand_path = os.path.join(base_dir, "assets", "images", "prosthetic_hand.jpg")
+            tools_path = os.path.join(base_dir, "assets", "images", "tools_case.jpg")
+            
+            self.img_boat = ctk.CTkImage(light_image=Image.open(boat_path), dark_image=Image.open(boat_path), size=(120, 120)) if os.path.exists(boat_path) else None
+            self.img_dashboard = ctk.CTkImage(light_image=Image.open(desk_path), dark_image=Image.open(desk_path), size=(48, 48)) if os.path.exists(desk_path) else None
+            self.img_folders = ctk.CTkImage(light_image=Image.open(wrap_path), dark_image=Image.open(wrap_path), size=(48, 48)) if os.path.exists(wrap_path) else None
+            self.img_history = ctk.CTkImage(light_image=Image.open(slide_path), dark_image=Image.open(slide_path), size=(48, 48)) if os.path.exists(slide_path) else None
+            self.img_trophies = ctk.CTkImage(light_image=Image.open(hand_path), dark_image=Image.open(hand_path), size=(48, 48)) if os.path.exists(hand_path) else None
+            self.img_settings = ctk.CTkImage(light_image=Image.open(tools_path), dark_image=Image.open(tools_path), size=(48, 48)) if os.path.exists(tools_path) else None
+            
+        except Exception as e:
+            print("No se pudo cargar la imagen:", e)
+            self.knife_image = None
+
+        # Estado para borrado en segundo plano
+        self.is_deleting = False
+        self.cancel_delete_flag = False
+        self.delete_stats = {"percent": 0, "current_file": "", "deleted": 0, "total": 0}
+
         # ── Construir UI ──
         self._build_layout()
         self._show_dashboard()
@@ -182,6 +216,7 @@ class DarkPassengerApp(ctk.CTk):
             ("dashboard", "◉  Dashboard", self._show_dashboard),
             ("folders",   "📁  Carpetas",  self._show_folders),
             ("history",   "📋  Historial",  self._show_history),
+            ("trophies",  "🩸  Trofeos",    self._show_destination_files),
             ("settings",  "⚙  Ajustes",    self._show_settings),
         ]
         
@@ -199,15 +234,20 @@ class DarkPassengerApp(ctk.CTk):
             self.nav_buttons[key] = btn
         
         # ── Indicador SSD en sidebar (parte inferior) ──
-        spacer = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        spacer.pack(fill="both", expand=True)
-        
         self.ssd_status_frame = ctk.CTkFrame(
             self.sidebar, fg_color=COLORS["bg_card"],
             corner_radius=10, border_width=1,
             border_color=COLORS["border"]
         )
-        self.ssd_status_frame.pack(fill="x", padx=12, pady=(5, 15))
+        self.ssd_status_frame.pack(side="bottom", fill="x", padx=12, pady=(5, 15))
+        
+        # Boat image
+        if hasattr(self, 'img_boat') and self.img_boat:
+            boat_label = ctk.CTkLabel(self.sidebar, text="", image=self.img_boat)
+            boat_label.pack(side="bottom", pady=(10, 5))
+            
+        spacer = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        spacer.pack(fill="both", expand=True)
         
         self.ssd_status_icon = ctk.CTkLabel(
             self.ssd_status_frame, text="⬤",
@@ -263,7 +303,7 @@ class DarkPassengerApp(ctk.CTk):
         
         # Contenedor scrollable
         scroll = ctk.CTkScrollableFrame(
-            self.content_area, fg_color="transparent",
+            self.content_area, fg_color=COLORS["bg_dark"],
             scrollbar_button_color=COLORS["border"],
             scrollbar_button_hover_color=COLORS["blood_dim"]
         )
@@ -273,6 +313,10 @@ class DarkPassengerApp(ctk.CTk):
         header = ctk.CTkFrame(scroll, fg_color="transparent")
         header.pack(fill="x", pady=(0, 20))
         
+        # Imagen
+        if hasattr(self, 'img_dashboard') and self.img_dashboard:
+            ctk.CTkLabel(header, text="", image=self.img_dashboard).pack(side="left", padx=(0, 15))
+            
         ctk.CTkLabel(
             header, text="Tonight's the night.",
             font=FONTS["title"],
@@ -280,16 +324,19 @@ class DarkPassengerApp(ctk.CTk):
             anchor="w"
         ).pack(side="left")
         
+        is_running = self.backup_engine.is_running
+        
         # Botón principal de Backup
         self.btn_backup = ctk.CTkButton(
-            header, text="▶  INICIAR BACKUP",
+            header, 
+            text="✕  DETENER BACKUP" if is_running else "▶  INICIAR BACKUP",
             font=FONTS["button"],
-            fg_color=COLORS["blood_red"],
-            hover_color=COLORS["blood_bright"],
+            fg_color=COLORS["border"] if is_running else COLORS["blood_red"],
+            hover_color=COLORS["blood_dim"] if is_running else COLORS["blood_bright"],
             text_color="white",
             height=42, width=200,
             corner_radius=8,
-            command=self._on_backup_click
+            command=self._on_cancel_backup if is_running else self._on_backup_click
         )
         self.btn_backup.pack(side="right")
         
@@ -362,15 +409,21 @@ class DarkPassengerApp(ctk.CTk):
         ).pack(side="left")
         
         # Backup pendiente?
+        # Solo mostrar si realmente ha pasado el tiempo (1 semana, etc), NO simplemente porque el SSD esté conectado o desconectado
+        # Usamos is_backup_overdue que ya calcula si han pasado los días configurados.
         if BackupScheduler.is_backup_overdue(self.config):
-            overdue_frame = ctk.CTkFrame(status_inner, fg_color="transparent")
-            overdue_frame.pack(fill="x", pady=(5, 0))
-            ctk.CTkLabel(
-                overdue_frame, text="⚠  ¡Backup pendiente! Conecta tu SSD.",
-                font=FONTS["body_bold"],
-                text_color=COLORS["warning"],
-                anchor="w"
-            ).pack(side="left")
+            stats = history_manager.get_stats()
+            # Si NUNCA se ha hecho un backup, también está pendiente
+            is_never = stats.get("total_backups", 0) == 0
+            if is_never or not self.backup_engine.is_running:
+                overdue_frame = ctk.CTkFrame(status_inner, fg_color="transparent")
+                overdue_frame.pack(fill="x", pady=(5, 0))
+                ctk.CTkLabel(
+                    overdue_frame, text="⚠  ¡Backup pendiente! Conecta tu SSD o inícialo.",
+                    font=FONTS["body_bold"],
+                    text_color=COLORS["warning"],
+                    anchor="w"
+                ).pack(side="left")
         
         # ── Barra de progreso (oculta por defecto) ──
         self.progress_card = ctk.CTkFrame(
@@ -389,22 +442,53 @@ class DarkPassengerApp(ctk.CTk):
             anchor="w"
         ).pack(anchor="w")
         
+        # Contenedor para barra y cuchillo
+        self.progress_container = ctk.CTkFrame(progress_inner, fg_color="transparent", height=40)
+        self.progress_container.pack(fill="x", pady=(10, 5))
+        
         self.progress_bar = ctk.CTkProgressBar(
-            progress_inner,
+            self.progress_container,
             fg_color=COLORS["progress_bg"],
             progress_color=COLORS["blood_red"],
             height=12, corner_radius=6
         )
-        self.progress_bar.pack(fill="x", pady=(15, 5))
+        # Colocamos la barra centrada verticalmente
+        self.progress_bar.place(relx=0, rely=0.5, relwidth=1.0, anchor="w")
         self.progress_bar.set(0)
         
+        # El cuchillo
+        if hasattr(self, 'knife_image') and self.knife_image:
+            self.knife_label = ctk.CTkLabel(self.progress_container, text="", image=self.knife_image)
+            self.knife_label.place(relx=0, rely=0.5, anchor="center")
+        else:
+            self.knife_label = ctk.CTkLabel(self.progress_container, text="🔪", font=("Segoe UI Emoji", 24), text_color=COLORS["blood_bright"])
+            self.knife_label.place(relx=0, rely=0.5, anchor="center")
+        
+        info_frame = ctk.CTkFrame(progress_inner, fg_color="transparent")
+        info_frame.pack(fill="x", pady=(5, 0))
+        
+        self.progress_percentage = ctk.CTkLabel(
+            info_frame, text="0%",
+            font=FONTS["heading"],
+            text_color=COLORS["blood_bright"]
+        )
+        self.progress_percentage.pack(side="right")
+        
         self.progress_label = ctk.CTkLabel(
-            progress_inner, text="Preparando...",
+            info_frame, text="Preparando...",
             font=FONTS["mono"],
             text_color=COLORS["text_secondary"],
             anchor="w"
         )
-        self.progress_label.pack(anchor="w", pady=(5, 0))
+        self.progress_label.pack(side="left")
+        
+        self.files_count_label = ctk.CTkLabel(
+            progress_inner, text="Archivos: 0 / 0",
+            font=FONTS["small"],
+            text_color=COLORS["text_dim"],
+            anchor="w"
+        )
+        self.files_count_label.pack(anchor="w")
         
         self.progress_status = ctk.CTkLabel(
             progress_inner, text="",
@@ -428,6 +512,20 @@ class DarkPassengerApp(ctk.CTk):
         # Solo mostrar si hay backup en curso
         if self.backup_engine.is_running:
             self.progress_card.pack(fill="x", pady=(0, 15))
+            
+            # Restaurar estado visual
+            copied = getattr(self.backup_engine, 'files_copied_so_far', 0)
+            total = getattr(self.backup_engine, 'total_files', 0)
+            if total > 0:
+                percent = int((copied / total) * 100)
+                fraction = percent / 100.0
+                self.progress_bar.set(fraction)
+                safe_relx = max(0.02, min(0.98, fraction))
+                if hasattr(self, 'knife_label'):
+                    self.knife_label.place(relx=safe_relx, rely=0.5, anchor="center")
+                self.progress_percentage.configure(text=f"{percent}%")
+                self.files_count_label.configure(text=f"Archivos guardados: {copied} / {total}")
+                self.progress_label.configure(text="Continuando con el ritual...")
         
         # ── Últimos backups (mini historial) ──
         recent_card = ctk.CTkFrame(
@@ -563,22 +661,31 @@ class DarkPassengerApp(ctk.CTk):
         self.current_page = "folders"
         
         scroll = ctk.CTkScrollableFrame(
-            self.content_area, fg_color="transparent",
+            self.content_area, fg_color=COLORS["bg_dark"],
             scrollbar_button_color=COLORS["border"],
             scrollbar_button_hover_color=COLORS["blood_dim"]
         )
         scroll.pack(fill="both", expand=True, padx=25, pady=20)
         
         # Header
+        header = ctk.CTkFrame(scroll, fg_color="transparent")
+        header.pack(fill="x", pady=(0, 20))
+        
+        if hasattr(self, 'img_folders') and self.img_folders:
+            ctk.CTkLabel(header, text="", image=self.img_folders).pack(side="left", padx=(0, 15))
+            
+        title_frame = ctk.CTkFrame(header, fg_color="transparent")
+        title_frame.pack(side="left")
+        
         ctk.CTkLabel(
-            scroll, text="La Mesa de Trabajo",
+            title_frame, text="La Mesa de Trabajo",
             font=FONTS["title"],
             text_color=COLORS["blood_bright"],
             anchor="w"
         ).pack(anchor="w", pady=(0, 5))
         
         ctk.CTkLabel(
-            scroll, text="Selecciona las carpetas que el pasajero oscuro debe proteger.",
+            title_frame, text="Selecciona las carpetas que el pasajero oscuro debe proteger.",
             font=FONTS["body"],
             text_color=COLORS["text_secondary"],
             anchor="w"
@@ -848,7 +955,7 @@ class DarkPassengerApp(ctk.CTk):
         self.current_page = "history"
         
         scroll = ctk.CTkScrollableFrame(
-            self.content_area, fg_color="transparent",
+            self.content_area, fg_color=COLORS["bg_dark"],
             scrollbar_button_color=COLORS["border"],
             scrollbar_button_hover_color=COLORS["blood_dim"]
         )
@@ -858,6 +965,9 @@ class DarkPassengerApp(ctk.CTk):
         header = ctk.CTkFrame(scroll, fg_color="transparent")
         header.pack(fill="x", pady=(0, 20))
         
+        if hasattr(self, 'img_history') and self.img_history:
+            ctk.CTkLabel(header, text="", image=self.img_history).pack(side="left", padx=(0, 15))
+            
         ctk.CTkLabel(
             header, text="Las Víctimas",
             font=FONTS["title"],
@@ -979,6 +1089,372 @@ class DarkPassengerApp(ctk.CTk):
             self._show_history()
     
     # ═══════════════════════════════════════════════════════
+    #  PÁGINA: TROFEOS (DESTINO)
+    # ═══════════════════════════════════════════════════════
+    
+    def _show_destination_files(self):
+        """Muestra las carpetas respaldadas en el SSD de destino."""
+        self._clear_content()
+        self._set_active_nav("trophies")
+        self.current_page = "trophies"
+        
+        # Header
+        header = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        header.pack(fill="x", padx=30, pady=(20, 10))
+        
+        if hasattr(self, 'img_trophies') and self.img_trophies:
+            ctk.CTkLabel(header, text="", image=self.img_trophies).pack(side="left", padx=(0, 15))
+            
+        title_frame = ctk.CTkFrame(header, fg_color="transparent")
+        title_frame.pack(side="left", fill="y")
+        
+        ctk.CTkLabel(
+            title_frame, text="La Colección de Trofeos",
+            font=FONTS["title"],
+            text_color=COLORS["blood_bright"],
+            anchor="w"
+        ).pack(side="left")
+        
+        btn_refresh = ctk.CTkButton(
+            header, text="⟳ Actualizar",
+            font=FONTS["small"],
+            fg_color=COLORS["border"],
+            hover_color=COLORS["blood_dim"],
+            text_color=COLORS["text_secondary"],
+            height=30, width=100, corner_radius=6,
+            command=self._refresh_destination_files
+        )
+        btn_refresh.pack(side="right")
+        
+        # Contenedor principal scrollable
+        self.trophies_container = ctk.CTkScrollableFrame(
+            self.content_area, fg_color=COLORS["bg_dark"]
+        )
+        self.trophies_container.pack(fill="both", expand=True, padx=25, pady=(0, 20))
+        
+        self._refresh_destination_files()
+        
+    def _refresh_destination_files(self):
+        """Recarga la lista de carpetas en el SSD."""
+        if not hasattr(self, 'trophies_container') or not self.trophies_container.winfo_exists():
+            return
+            
+        for widget in self.trophies_container.winfo_children():
+            widget.destroy()
+            
+        # Si está borrando, restaurar la interfaz de borrado y no mostrar la lista
+        if getattr(self, 'is_deleting', False):
+            self._create_delete_progress_ui()
+            stats = self.delete_stats
+            self._do_update_delete_progress(stats["percent"], stats["current_file"], stats["deleted"], stats["total"])
+            return
+            
+        config = config_manager.load_config()
+        ssd = is_target_ssd_connected(config)
+        
+        if not ssd:
+            # SSD No conectado
+            empty_frame = ctk.CTkFrame(self.trophies_container, fg_color="transparent")
+            empty_frame.pack(fill="both", expand=True, pady=50)
+            
+            ctk.CTkLabel(
+                empty_frame, text="⚠", font=("Segoe UI Emoji", 48), text_color=COLORS["warning"]
+            ).pack(pady=(0, 10))
+            
+            ctk.CTkLabel(
+                empty_frame, text="El SSD no está conectado.",
+                font=FONTS["heading"], text_color=COLORS["text_primary"]
+            ).pack()
+            
+            ctk.CTkLabel(
+                empty_frame, text="Conecta tu disco externo para ver y gestionar los trofeos (backups).",
+                font=FONTS["body"], text_color=COLORS["text_secondary"]
+            ).pack()
+            return
+            
+        # SSD conectado, buscar carpetas
+        dest_path = os.path.join(f"{ssd['letter']}:\\", "DarkPassenger_Backup")
+        
+        if not os.path.exists(dest_path):
+            empty_frame = ctk.CTkFrame(self.trophies_container, fg_color="transparent")
+            empty_frame.pack(fill="both", expand=True, pady=50)
+            
+            ctk.CTkLabel(
+                empty_frame, text="🩸", font=("Segoe UI Emoji", 48)
+            ).pack(pady=(0, 10))
+            
+            ctk.CTkLabel(
+                empty_frame, text="La colección está vacía.",
+                font=FONTS["heading"], text_color=COLORS["text_primary"]
+            ).pack()
+            
+            ctk.CTkLabel(
+                empty_frame, text="No hay ningún backup guardado todavía.",
+                font=FONTS["body"], text_color=COLORS["text_secondary"]
+            ).pack()
+            return
+            
+        ctk.CTkLabel(
+            self.trophies_container, text=f"Ubicación: {dest_path}",
+            font=FONTS["mono"], text_color=COLORS["text_dim"], anchor="w"
+        ).pack(fill="x", pady=(0, 15))
+        
+        # Listar subdirectorios
+        try:
+            items = os.listdir(dest_path)
+            folders = [f for f in items if os.path.isdir(os.path.join(dest_path, f))]
+        except Exception as e:
+            ctk.CTkLabel(self.trophies_container, text=f"Error leyendo el disco: {e}", text_color=COLORS["error"]).pack()
+            return
+            
+        if not folders:
+            empty_frame = ctk.CTkFrame(self.trophies_container, fg_color="transparent")
+            empty_frame.pack(fill="both", expand=True, pady=30)
+            ctk.CTkLabel(empty_frame, text="No hay carpetas en el destino.", text_color=COLORS["text_dim"]).pack()
+            return
+            
+        # Ordenar alfabéticamente
+        folders.sort(key=str.lower)
+        
+        for folder in folders:
+            full_path = os.path.join(dest_path, folder)
+            
+            row = ctk.CTkFrame(
+                self.trophies_container, fg_color=COLORS["bg_card"],
+                corner_radius=8, border_width=1, border_color=COLORS["border"]
+            )
+            row.pack(fill="x", pady=4)
+            
+            # Nombre de la carpeta
+            ctk.CTkLabel(
+                row, text=f"📁  {folder}",
+                font=FONTS["body_bold"], text_color=COLORS["text_primary"],
+                anchor="w"
+            ).pack(side="left", padx=15, pady=12)
+            
+            # Botones de acción
+            btn_delete = ctk.CTkButton(
+                row, text="✕ Borrar",
+                font=FONTS["small"],
+                fg_color="transparent",
+                hover_color=COLORS["blood_dim"],
+                text_color=COLORS["error"],
+                border_width=1, border_color=COLORS["error"],
+                height=28, width=80, corner_radius=6,
+                command=lambda p=full_path: self._delete_folder(p)
+            )
+            btn_delete.pack(side="right", padx=(5, 15), pady=12)
+            
+            btn_open = ctk.CTkButton(
+                row, text="👁 Ver",
+                font=FONTS["small"],
+                fg_color="transparent",
+                hover_color=COLORS["bg_card_hover"],
+                text_color=COLORS["text_secondary"],
+                border_width=1, border_color=COLORS["border"],
+                height=28, width=80, corner_radius=6,
+                command=lambda p=full_path: self._open_folder(p)
+            )
+            btn_open.pack(side="right", padx=5, pady=12)
+            
+    def _open_folder(self, path):
+        """Abre la carpeta en el explorador de Windows."""
+        try:
+            import os
+            os.startfile(path)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo abrir la carpeta:\n{str(e)}")
+            
+    def _delete_folder(self, path):
+        """Borra la carpeta de forma permanente."""
+        folder_name = os.path.basename(path)
+        if messagebox.askyesno(
+            "Eliminar Trofeo",
+            f"¿Estás seguro de que quieres eliminar la carpeta '{folder_name}' de tu SSD?\n\n¡Esta acción es irreversible y los datos se perderán para siempre!"
+        ):
+            # Iniciar UI de borrado
+            self._create_delete_progress_ui()
+            import threading
+            threading.Thread(target=self._delete_folder_background, args=(path,), daemon=True).start()
+            
+    def _create_delete_progress_ui(self):
+        """Crea la interfaz de la barra de progreso para borrar."""
+        # Limpiamos la lista de trofeos para mostrar el progreso en su lugar
+        if hasattr(self, 'trophies_container') and self.trophies_container.winfo_exists():
+            for widget in self.trophies_container.winfo_children():
+                widget.destroy()
+            
+        self.delete_progress_card = ctk.CTkFrame(
+            self.trophies_container, fg_color=COLORS["bg_card"],
+            corner_radius=12, border_width=1,
+            border_color=COLORS["blood_dim"]
+        )
+        self.delete_progress_card.pack(fill="x", padx=10, pady=20)
+        
+        progress_inner = ctk.CTkFrame(self.delete_progress_card, fg_color="transparent")
+        progress_inner.pack(fill="x", padx=25, pady=20)
+        
+        ctk.CTkLabel(
+            progress_inner, text="🔪 Destruyendo Trofeo...",
+            font=FONTS["heading"],
+            text_color=COLORS["blood_bright"],
+            anchor="w"
+        ).pack(anchor="w")
+        
+        self.del_progress_container = ctk.CTkFrame(progress_inner, fg_color="transparent", height=40)
+        self.del_progress_container.pack(fill="x", pady=(10, 5))
+        
+        self.del_progress_bar = ctk.CTkProgressBar(
+            self.del_progress_container,
+            fg_color=COLORS["progress_bg"],
+            progress_color=COLORS["blood_red"],
+            height=12, corner_radius=6
+        )
+        self.del_progress_bar.place(relx=0, rely=0.5, relwidth=1.0, anchor="w")
+        self.del_progress_bar.set(0)
+        
+        if hasattr(self, 'knife_image') and self.knife_image:
+            self.del_knife_label = ctk.CTkLabel(self.del_progress_container, text="", image=self.knife_image)
+            self.del_knife_label.place(relx=0, rely=0.5, anchor="center")
+        else:
+            self.del_knife_label = ctk.CTkLabel(self.del_progress_container, text="🔪", font=("Segoe UI Emoji", 24), text_color=COLORS["blood_bright"])
+            self.del_knife_label.place(relx=0, rely=0.5, anchor="center")
+            
+        info_frame = ctk.CTkFrame(progress_inner, fg_color="transparent")
+        info_frame.pack(fill="x", pady=(5, 0))
+        
+        self.del_progress_percentage = ctk.CTkLabel(
+            info_frame, text="0%",
+            font=FONTS["heading"],
+            text_color=COLORS["blood_bright"]
+        )
+        self.del_progress_percentage.pack(side="right")
+        
+        self.del_progress_label = ctk.CTkLabel(
+            info_frame, text="Escaneando para destruir...",
+            font=FONTS["mono"],
+            text_color=COLORS["text_secondary"],
+            anchor="w"
+        )
+        self.del_progress_label.pack(side="left")
+        
+        self.del_files_count_label = ctk.CTkLabel(
+            progress_inner, text="Archivos eliminados: 0 / 0",
+            font=FONTS["small"],
+            text_color=COLORS["text_dim"],
+            anchor="w"
+        )
+        self.del_files_count_label.pack(anchor="w")
+        
+        btn_cancel_delete = ctk.CTkButton(
+            progress_inner, text="✕  Detener",
+            font=FONTS["small"],
+            fg_color=COLORS["border"],
+            hover_color=COLORS["blood_dim"],
+            text_color=COLORS["text_secondary"],
+            height=30, width=100, corner_radius=6,
+            command=self._on_cancel_delete
+        )
+        btn_cancel_delete.pack(anchor="e", pady=(10, 0))
+        
+    def _on_cancel_delete(self):
+        """Marca el flag para detener el borrado en curso."""
+        self.cancel_delete_flag = True
+        self.del_progress_label.configure(text="Deteniendo...", text_color=COLORS["warning"])
+
+    def _do_update_delete_progress(self, percent, current_file, current_count, total_count):
+        self.delete_stats["percent"] = percent
+        self.delete_stats["current_file"] = current_file
+        self.delete_stats["deleted"] = current_count
+        self.delete_stats["total"] = total_count
+        
+        if hasattr(self, 'del_progress_bar') and self.del_progress_bar.winfo_exists():
+            fraction = percent / 100.0
+            self.del_progress_bar.set(fraction)
+            safe_relx = max(0.02, min(0.98, fraction))
+            self.del_knife_label.place(relx=safe_relx, rely=0.5, anchor="center")
+            self.del_progress_percentage.configure(text=f"{percent}%")
+            if len(current_file) > 60:
+                current_file = "..." + current_file[-57:]
+            self.del_progress_label.configure(text=current_file)
+            self.del_files_count_label.configure(text=f"Archivos eliminados: {current_count} / {total_count}")
+            
+    def _finish_delete(self, error_msg=None):
+        self.is_deleting = False
+        if hasattr(self, 'delete_progress_card') and self.delete_progress_card.winfo_exists():
+            self.delete_progress_card.destroy()
+        if error_msg:
+            messagebox.showerror("Error", f"Ocurrió un error al borrar:\n{error_msg}")
+        self._refresh_destination_files()
+
+    def _delete_folder_background(self, path):
+        self.is_deleting = True
+        self.cancel_delete_flag = False
+        self.delete_stats = {"percent": 0, "current_file": "Escaneando...", "deleted": 0, "total": 0}
+        
+        import os, stat
+        
+        # 1. Contar archivos para la barra de progreso
+        total_files = 1  # 1 para la carpeta raíz
+        for root, dirs, files in os.walk(path):
+            total_files += len(files) + len(dirs)
+            
+        deleted = 0
+        
+        def custom_rmtree(p):
+            nonlocal deleted
+            if self.cancel_delete_flag:
+                return
+            try:
+                items = os.listdir(p)
+            except Exception:
+                return
+            
+            for item in items:
+                if self.cancel_delete_flag:
+                    return
+                full_item_path = os.path.join(p, item)
+                try:
+                    if os.path.isdir(full_item_path):
+                        custom_rmtree(full_item_path)
+                    else:
+                        # Fix WinError 5 for git objects or read-only files
+                        os.chmod(full_item_path, stat.S_IWRITE)
+                        os.remove(full_item_path)
+                        deleted += 1
+                        
+                        if deleted % 50 == 0 or deleted >= total_files:
+                            percent = int((deleted / total_files) * 100)
+                            percent = min(100, max(0, percent))
+                            self.after(0, lambda pct=percent, d=deleted, t=total_files, n=item: self._do_update_delete_progress(pct, n, d, t))
+                except Exception:
+                    pass
+            
+            if self.cancel_delete_flag:
+                return
+                
+            try:
+                os.chmod(p, stat.S_IWRITE)
+                os.rmdir(p)
+                deleted += 1
+                
+                if deleted % 50 == 0 or deleted >= total_files:
+                    percent = int((deleted / total_files) * 100)
+                    percent = min(100, max(0, percent))
+                    self.after(0, lambda pct=percent, d=deleted, t=total_files, n=os.path.basename(p): self._do_update_delete_progress(pct, n, d, t))
+            except Exception:
+                pass
+                
+        try:
+            custom_rmtree(path)
+            if self.cancel_delete_flag:
+                self.after(0, lambda: self._finish_delete("Operación cancelada por el usuario. El trofeo ha quedado a medio borrar."))
+            else:
+                self.after(0, self._finish_delete)
+        except Exception as e:
+            self.after(0, lambda err=str(e): self._finish_delete(err))
+
+    # ═══════════════════════════════════════════════════════
     #  PÁGINA: AJUSTES
     # ═══════════════════════════════════════════════════════
     
@@ -989,19 +1465,25 @@ class DarkPassengerApp(ctk.CTk):
         self.current_page = "settings"
         
         scroll = ctk.CTkScrollableFrame(
-            self.content_area, fg_color="transparent",
+            self.content_area, fg_color=COLORS["bg_dark"],
             scrollbar_button_color=COLORS["border"],
             scrollbar_button_hover_color=COLORS["blood_dim"]
         )
         scroll.pack(fill="both", expand=True, padx=25, pady=20)
         
         # Header
+        header = ctk.CTkFrame(scroll, fg_color="transparent")
+        header.pack(fill="x", pady=(0, 20))
+        
+        if hasattr(self, 'img_settings') and self.img_settings:
+            ctk.CTkLabel(header, text="", image=self.img_settings).pack(side="left", padx=(0, 15))
+            
         ctk.CTkLabel(
-            scroll, text="El Código",
+            header, text="El Código",
             font=FONTS["title"],
             text_color=COLORS["blood_bright"],
             anchor="w"
-        ).pack(anchor="w", pady=(0, 5))
+        ).pack(side="left", pady=(0, 5))
         
         ctk.CTkLabel(
             scroll, text="Las reglas que gobiernan al pasajero oscuro.",
@@ -1312,28 +1794,115 @@ class DarkPassengerApp(ctk.CTk):
         )
         
         self.btn_backup.configure(
-            text="⏸  EN CURSO...",
-            fg_color=COLORS["blood_dim"],
-            state="disabled"
+            text="✕  DETENER BACKUP",
+            fg_color=COLORS["border"],
+            hover_color=COLORS["blood_dim"],
+            state="normal",
+            command=self._on_cancel_backup
         )
-        
+        self.progress_bar.set(0)
         self.backup_engine.start_backup()
     
     def _on_cancel_backup(self):
-        """Cancela el backup en curso."""
-        if self.backup_engine.is_running:
-            self.backup_engine.cancel_backup()
+        """Cancela el backup en curso preguntando primero al usuario."""
+        if not self.backup_engine.is_running:
+            return
+            
+        popup = ctk.CTkToplevel(self)
+        popup.title("Abortar Ritual")
+        popup.geometry("400x260")
+        popup.configure(fg_color=COLORS["bg_dark"])
+        popup.transient(self)
+        popup.grab_set()
+        popup.attributes("-topmost", True)
+        
+        # Centrar
+        popup.update_idletasks()
+        x = (popup.winfo_screenwidth() // 2) - 200
+        y = (popup.winfo_screenheight() // 2) - 130
+        popup.geometry(f"+{x}+{y}")
+        
+        # Borde superior decorativo
+        top_bar = ctk.CTkFrame(popup, height=4, fg_color=COLORS["warning"], corner_radius=0)
+        top_bar.pack(fill="x")
+        
+        content = ctk.CTkFrame(popup, fg_color="transparent")
+        content.pack(fill="both", expand=True, padx=30, pady=20)
+        
+        ctk.CTkLabel(
+            content, text="⚠ ¿Detener el Ritual?",
+            font=("Consolas", 18, "bold"),
+            text_color=COLORS["warning"]
+        ).pack(pady=(0, 10))
+        
+        ctk.CTkLabel(
+            content, 
+            text="Si cancelas ahora, los archivos descargados durante esta sesión serán eliminados (Rollback) para asegurar que el backup quede intacto.\n\n¿Estás seguro?",
+            font=FONTS["body"],
+            text_color=COLORS["text_secondary"],
+            wraplength=340,
+            justify="center"
+        ).pack(pady=(0, 25))
+        
+        btn_frame = ctk.CTkFrame(content, fg_color="transparent")
+        btn_frame.pack(fill="x", expand=True)
+        
+        def confirm():
+            popup.destroy()
+            if self.backup_engine.is_running:
+                self.backup_engine.cancel_backup(rollback=True)
+            
+        def cancel():
+            popup.destroy()
+            
+        ctk.CTkButton(
+            btn_frame, text="No, continuar",
+            font=FONTS["button"],
+            fg_color="transparent",
+            hover_color=COLORS["bg_card_hover"],
+            text_color=COLORS["text_secondary"],
+            border_width=1, border_color=COLORS["border"],
+            height=36, width=140, corner_radius=8,
+            command=cancel
+        ).pack(side="left", padx=(0, 5))
+        
+        ctk.CTkButton(
+            btn_frame, text="Sí, abortar",
+            font=FONTS["button"],
+            fg_color=COLORS["error"],
+            hover_color=COLORS["blood_dim"],
+            text_color="white",
+            height=36, width=140, corner_radius=8,
+            command=confirm
+        ).pack(side="right")
     
-    def _update_progress(self, percent, current_file):
+    def _update_progress(self, percent, current_file, current_count=None, total_count=None):
         """Callback: actualiza la barra de progreso (thread-safe)."""
-        self.after(0, lambda: self._do_update_progress(percent, current_file))
+        self.after(0, lambda: self._do_update_progress(percent, current_file, current_count, total_count))
     
-    def _do_update_progress(self, percent, current_file):
+    def _do_update_progress(self, percent, current_file, current_count, total_count):
         """Actualiza la UI de progreso en el hilo principal."""
+        fraction = percent / 100.0
         if hasattr(self, 'progress_bar'):
-            self.progress_bar.set(percent / 100)
+            self.progress_bar.set(fraction)
+        
+        if hasattr(self, 'knife_label'):
+            # Mover el cuchillo a lo largo de la barra (relx de 0 a 1)
+            # Acotamos ligeramente para que no se salga de los bordes
+            safe_relx = max(0.02, min(0.98, fraction))
+            self.knife_label.place(relx=safe_relx, rely=0.5, anchor="center")
+            
+        if hasattr(self, 'progress_percentage'):
+            self.progress_percentage.configure(text=f"{percent}%")
+            
         if hasattr(self, 'progress_label'):
-            self.progress_label.configure(text=f"{percent}% - {current_file}")
+            # Truncar el nombre de archivo si es muy largo
+            if len(current_file) > 60:
+                current_file = "..." + current_file[-57:]
+            self.progress_label.configure(text=current_file)
+            
+        if hasattr(self, 'files_count_label') and current_count is not None and total_count is not None:
+            self.files_count_label.configure(text=f"Archivos guardados: {current_count} / {total_count}")
     
     def _update_status(self, message):
         """Callback: actualiza el mensaje de estado (thread-safe)."""
@@ -1354,22 +1923,95 @@ class DarkPassengerApp(ctk.CTk):
             self.btn_backup.configure(
                 text="▶  INICIAR BACKUP",
                 fg_color=COLORS["blood_red"],
-                state="normal"
+                hover_color=COLORS["blood_bright"],
+                state="normal",
+                command=self._on_backup_click
             )
         
         if success:
-            messagebox.showinfo(
-                "Ritual completado",
-                f"✅ Backup completado exitosamente.\n\n"
-                f"Archivos copiados: {entry.get('files_copied', 0)}\n"
-                f"Tamaño: {entry.get('size_display', '0 B')}\n"
-                f"Duración: {entry.get('duration_display', '0s')}"
-            )
+            self._show_completion_popup(success, entry)
         
         # Refrescar dashboard
         if self.current_page == "dashboard":
             self._show_dashboard()
     
+    def _show_completion_popup(self, success, entry):
+        """Muestra un popup temático de éxito o fallo del backup."""
+        popup = ctk.CTkToplevel(self)
+        popup.title("Ritual Completado" if success else "Ritual Fallido")
+        popup.geometry("400x320")
+        popup.configure(fg_color=COLORS["bg_dark"])
+        popup.transient(self)
+        popup.grab_set()
+        popup.attributes("-topmost", True)
+        
+        # Centrar
+        popup.update_idletasks()
+        x = (popup.winfo_screenwidth() // 2) - 200
+        y = (popup.winfo_screenheight() // 2) - 160
+        popup.geometry(f"+{x}+{y}")
+        
+        # Borde decorativo superior
+        top_bar = ctk.CTkFrame(popup, height=4, fg_color=COLORS["blood_bright"] if success else COLORS["error"], corner_radius=0)
+        top_bar.pack(fill="x")
+        
+        # Contenido
+        content = ctk.CTkFrame(popup, fg_color="transparent")
+        content.pack(fill="both", expand=True, padx=30, pady=20)
+        
+        files_copied = entry.get('files_copied', 0)
+        up_to_date = success and files_copied == 0
+        
+        if up_to_date:
+            icon = "🕵️‍♂️"
+            title = "Colección Intacta - Estás al día"
+            color = COLORS["blood_bright"]
+        else:
+            icon = "🩸" if success else "💀"
+            title = "Ritual Completado Exitosamente" if success else "Error en el Ritual"
+            color = COLORS["blood_bright"] if success else COLORS["error"]
+        
+        ctk.CTkLabel(
+            content, text=icon,
+            font=("Segoe UI Emoji", 48)
+        ).pack(pady=(10, 5))
+        
+        ctk.CTkLabel(
+            content, text=title,
+            font=("Consolas", 16, "bold"),
+            text_color=color
+        ).pack(pady=(0, 10))
+        
+        files = entry.get('files_copied', 0)
+        size = entry.get('size_display', '0 B')
+        duration = entry.get('duration_display', '0s')
+        
+        info_frame = ctk.CTkFrame(content, fg_color=COLORS["bg_card"], corner_radius=8, border_width=1, border_color=COLORS["border"])
+        info_frame.pack(fill="x", pady=5)
+        
+        if up_to_date:
+            info_text = f"Todo está perfecto.\nNo había nuevas víctimas ni archivos modificados.\nTu SSD está completamente sincronizado."
+        else:
+            info_text = f"📄 Archivos guardados: {files}\n💾 Tamaño procesado: {size}\n⏱ Duración total: {duration}"
+        
+        ctk.CTkLabel(
+            info_frame,
+            text=info_text,
+            font=FONTS["body"],
+            text_color=COLORS["text_secondary"],
+            justify="left" if not up_to_date else "center"
+        ).pack(padx=20, pady=15)
+        
+        ctk.CTkButton(
+            content, text="Aceptar",
+            font=FONTS["button"],
+            fg_color=color,
+            hover_color=COLORS["blood_dim"],
+            text_color="white",
+            height=40, width=140, corner_radius=8,
+            command=popup.destroy
+        ).pack(pady=(15, 0))
+
     # ═══════════════════════════════════════════════════════
     #  SERVICIOS EN SEGUNDO PLANO
     # ═══════════════════════════════════════════════════════

@@ -27,7 +27,7 @@ class BackupEngine:
         """
         Configura callbacks para la UI.
         
-        on_progress(percent, current_file): Progreso de la copia
+        on_progress(percent, current_file, current_count, total_count): Progreso de la copia
         on_status(message): Mensajes de estado
         on_complete(success, entry): Cuando termina el backup
         """
@@ -66,14 +66,67 @@ class BackupEngine:
         thread.start()
         return True
     
-    def cancel_backup(self):
+    def cancel_backup(self, rollback=False):
         """Cancela el backup en curso."""
         self._cancel_event.set()
         if self._current_process:
             try:
-                self._current_process.terminate()
+                import subprocess
+                subprocess.run(['taskkill', '/F', '/T', '/PID', str(self._current_process.pid)], 
+                               creationflags=0x08000000 if os.name == 'nt' else 0,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except Exception:
-                pass
+                try:
+                    self._current_process.terminate()
+                except Exception:
+                    pass
+        
+        if rollback and hasattr(self, 'files_copied_this_session'):
+            import time
+            time.sleep(0.5)  # Esperar a que el SO libere los handles
+            
+            dirs_to_check = set()
+            
+            for file_path in self.files_copied_this_session:
+                try:
+                    if os.path.exists(file_path):
+                        import stat
+                        os.chmod(file_path, stat.S_IWRITE)
+                        os.remove(file_path)
+                        dirs_to_check.add(os.path.dirname(file_path))
+                except Exception as e:
+                    print(f"Error borrando {file_path}: {e}")
+                    
+            # Eliminar carpetas que hayan quedado vacías subiendo hacia la raíz
+            for d in dirs_to_check:
+                curr = d
+                while curr and os.path.exists(curr):
+                    try:
+                        if not os.listdir(curr):
+                            os.chmod(curr, stat.S_IWRITE)
+                            os.rmdir(curr)
+                            curr = os.path.dirname(curr)
+                        else:
+                            break
+                    except Exception:
+                        break
+                        
+            # Si era un backup de carpetas completamente nuevas, aniquilarlas enteras
+            if hasattr(self, '_new_folders_created'):
+                import shutil
+                def on_rm_error(func, path, exc_info):
+                    try:
+                        os.chmod(path, stat.S_IWRITE)
+                        func(path)
+                    except: pass
+                for d in self._new_folders_created:
+                    try:
+                        if os.path.exists(d):
+                            shutil.rmtree(d, onerror=on_rm_error)
+                    except: pass
+                self._new_folders_created.clear()
+                    
+            self.files_copied_this_session.clear()
     
     def _run_backup(self, sources, destination, flags):
         """Ejecuta el backup para todas las carpetas de origen."""
@@ -86,6 +139,17 @@ class BackupEngine:
         errors = []
         overall_success = True
         
+        self._emit_status("🔍 Escaneando archivos...")
+        total_files = 0
+        for source in sources:
+            for root, dirs, files in os.walk(source):
+                total_files += len(files)
+        
+        self.total_files = total_files
+        self.files_copied_so_far = 0
+        self.files_copied_this_session = []
+        self._new_folders_created = []
+        
         self._emit_status("🔪 Iniciando protocolo de backup...")
         
         for i, source in enumerate(sources):
@@ -97,8 +161,10 @@ class BackupEngine:
             folder_name = os.path.basename(source)
             dest_path = os.path.join(destination, folder_name)
             
+            if not os.path.exists(dest_path) or not os.listdir(dest_path):
+                self._new_folders_created.append(dest_path)
+            
             self._emit_status(f"📂 [{i+1}/{len(sources)}] Procesando: {folder_name}")
-            self._emit_progress(int((i / len(sources)) * 100), folder_name)
             
             result = self._run_robocopy(source, dest_path, flags)
             
@@ -116,6 +182,8 @@ class BackupEngine:
         # Determinar estado
         if self._cancel_event.is_set():
             status = "cancelled"
+            total_files_copied = 0
+            total_bytes = 0
         elif errors and overall_success:
             status = "partial"
         elif overall_success:
@@ -123,27 +191,42 @@ class BackupEngine:
         else:
             status = "error"
         
-        # Guardar en historial
-        entry = history_manager.add_entry(
-            status=status,
-            source_folders=sources,
-            destination=destination,
-            files_copied=total_files_copied,
-            files_skipped=total_files_skipped,
-            bytes_copied=total_bytes,
-            duration_seconds=int(duration),
-            errors=errors
-        )
-        
-        if status == "success":
-            config_manager.update_last_backup()
-            self._emit_status(f"✅ Backup completado. {total_files_copied} archivos copiados en {entry['duration_display']}.")
-        elif status == "cancelled":
-            self._emit_status("❌ Backup cancelado.")
+        # Si está al día o cancelado, no guardar en historial para no inflar los contadores
+        if (status == "success" and total_files_copied == 0) or status == "cancelled":
+            entry = {
+                "id": "ignored",
+                "status": status,
+                "files": 0,
+                "bytes": 0,
+                "duration_display": "0s"
+            }
+            if status == "success":
+                config_manager.update_last_backup()
+                self._emit_status("✅ Estás al día. No había archivos nuevos que copiar.")
+            else:
+                self._emit_status("❌ Backup cancelado.")
         else:
-            self._emit_status(f"⚠ Backup finalizado con errores. Archivos copiados: {total_files_copied}.")
+            # Guardar en historial
+            entry = history_manager.add_entry(
+                status=status,
+                source_folders=sources,
+                destination=destination,
+                files_copied=total_files_copied,
+                files_skipped=total_files_skipped,
+                bytes_copied=total_bytes,
+                duration_seconds=int(duration),
+                errors=errors
+            )
+            
+            if status == "success":
+                config_manager.update_last_backup()
+                self._emit_status(f"✅ Backup completado. {total_files_copied} archivos copiados en {entry['duration_display']}.")
+            elif status == "partial":
+                self._emit_status(f"⚠️ Backup parcial completado. {total_files_copied} archivos copiados.")
+            else:
+                self._emit_status("❌ Error crítico en el backup.")
         
-        self._emit_progress(100, "Completado")
+        self._emit_progress(100, "Completado", self.files_copied_so_far, self.total_files)
         
         self.is_running = False
         
@@ -165,40 +248,96 @@ class BackupEngine:
         # Asegurar que el directorio destino existe
         os.makedirs(destination, exist_ok=True)
         
-        cmd = f'robocopy "{source}" "{destination}" {flags} /NP /NFL /NDL /NJH /BYTES'
+        # Eliminamos /NFL y /NDL para poder ver los archivos, usamos /NP para evitar % rotos
+        cmd = f'robocopy "{source}" "{destination}" {flags} /NP /BYTES /NJH /NJS'
+        
+        result = {
+            "files_copied": 0,
+            "files_skipped": 0,
+            "bytes_copied": 0,
+            "errors": []
+        }
         
         try:
+            import subprocess
             self._current_process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 shell=True,
                 text=True,
                 encoding='utf-8',
-                errors='replace'
+                errors='replace',
+                creationflags=0x08000000 if os.name == 'nt' else 0
             )
             
-            stdout, stderr = self._current_process.communicate()
-            exit_code = self._current_process.returncode
+            files_in_this_folder = 0
+            current_source_dir = source
             
+            while True:
+                if self._cancel_event.is_set():
+                    break
+                    
+                line = self._current_process.stdout.readline()
+                if not line and self._current_process.poll() is not None:
+                    break
+                
+                if line:
+                    line = line.strip()
+                    if not line:
+                        continue
+                        
+                    parts = line.split('\t')
+                    text_part = parts[-1].strip() if parts else line.strip()
+                    
+                    if os.path.isdir(text_part) and text_part.startswith(source):
+                        current_source_dir = text_part
+                    
+                    if "Nuevo arch" in line or "New File" in line or "mismo" in line or "Same" in line or "Extra File" in line or "arch extra" in line:
+                        self.files_copied_so_far += 1
+                        files_in_this_folder += 1
+                        
+                        # Extraer nombre del archivo y tamaño
+                        file_name = text_part
+                        if len(parts) >= 2:
+                            try:
+                                size_str = parts[-2].strip()
+                                result["bytes_copied"] += int(size_str)
+                            except ValueError:
+                                pass
+                                
+                        # Registrar archivo si es nuevo para posible rollback
+                        if "Nuevo arch" in line or "New File" in line:
+                            try:
+                                rel_path = os.path.relpath(current_source_dir, source)
+                                dest_dir = destination if rel_path == "." else os.path.join(destination, rel_path)
+                                dest_file_path = os.path.join(dest_dir, file_name)
+                                self.files_copied_this_session.append(dest_file_path)
+                            except Exception:
+                                pass
+                        
+                        if self.total_files > 0:
+                            percent = int((self.files_copied_so_far / self.total_files) * 100)
+                            percent = min(100, percent)
+                        else:
+                            percent = 100
+                            
+                        self._emit_progress(percent, f"Procesando: {file_name}", self.files_copied_so_far, self.total_files)
+
+            exit_code = self._current_process.returncode
             self._current_process = None
             
-            result = self._parse_robocopy_output(stdout)
+            result["files_copied"] = files_in_this_folder
             
-            # Robocopy exit codes < 8 son éxito o parcial
-            if exit_code >= 8:
-                result["errors"] = [f"Robocopy error (exit code {exit_code}): {stderr.strip() or stdout.strip()}"]
+            if exit_code is not None and exit_code >= 8:
+                result["errors"] = [f"Robocopy error (exit code {exit_code})"]
             
             return result
             
         except Exception as e:
             self._current_process = None
-            return {
-                "files_copied": 0,
-                "files_skipped": 0,
-                "bytes_copied": 0,
-                "errors": [str(e)]
-            }
+            result["errors"] = [str(e)]
+            return result
     
     def _parse_robocopy_output(self, output):
         """Parsea la salida de robocopy para extraer estadísticas."""
@@ -238,10 +377,10 @@ class BackupEngine:
         
         return result
     
-    def _emit_progress(self, percent, current_file):
+    def _emit_progress(self, percent, current_file, current_count=None, total_count=None):
         """Emite progreso a la UI."""
         if self._progress_callback:
-            self._progress_callback(percent, current_file)
+            self._progress_callback(percent, current_file, current_count, total_count)
     
     def _emit_status(self, message):
         """Emite un mensaje de estado a la UI."""
