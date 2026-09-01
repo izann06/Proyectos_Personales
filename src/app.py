@@ -152,10 +152,10 @@ class DarkPassengerApp(ctk.CTk):
             path_data = os.path.join(base_dir, "assets", "images", "icon_data.png")
             path_files = os.path.join(base_dir, "assets", "images", "icon_files.png")
             
-            self.icon_splatter = ctk.CTkImage(light_image=Image.open(path_total), dark_image=Image.open(path_total), size=(48, 48)) if os.path.exists(path_total) else None
-            self.icon_drop = ctk.CTkImage(light_image=Image.open(path_success), dark_image=Image.open(path_success), size=(48, 48)) if os.path.exists(path_success) else None
-            self.icon_knife = ctk.CTkImage(light_image=Image.open(path_data), dark_image=Image.open(path_data), size=(48, 48)) if os.path.exists(path_data) else None
-            self.icon_folder = ctk.CTkImage(light_image=Image.open(path_files), dark_image=Image.open(path_files), size=(48, 48)) if os.path.exists(path_files) else None
+            self.icon_splatter = ctk.CTkImage(light_image=Image.open(path_total), dark_image=Image.open(path_total), size=(64, 64)) if os.path.exists(path_total) else None
+            self.icon_drop = ctk.CTkImage(light_image=Image.open(path_success), dark_image=Image.open(path_success), size=(64, 64)) if os.path.exists(path_success) else None
+            self.icon_knife = ctk.CTkImage(light_image=Image.open(path_data), dark_image=Image.open(path_data), size=(64, 64)) if os.path.exists(path_data) else None
+            self.icon_folder = ctk.CTkImage(light_image=Image.open(path_files), dark_image=Image.open(path_files), size=(64, 64)) if os.path.exists(path_files) else None
             
             # Cuchillo grande para el popup
             self.img_knife_large = ctk.CTkImage(light_image=Image.open(knife_path), dark_image=Image.open(knife_path), size=(100, 100)) if os.path.exists(knife_path) else None
