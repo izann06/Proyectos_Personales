@@ -2127,7 +2127,8 @@ class DarkPassengerApp(ctk.CTk):
         
         ctk.CTkLabel(
             content,
-            text=f"SSD detectado: {ssd_info['label']} ({ssd_info['letter']}:)\n",
+            text=f"SSD detectado: {ssd_info['label']} ({ssd_info['letter']}:)\n"
+                 f"Espacio libre: {ssd_info['free_display']}",
             font=FONTS["body"],
             text_color=COLORS["text_secondary"],
             justify="center"

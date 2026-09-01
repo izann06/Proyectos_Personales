@@ -35,28 +35,43 @@ No necesitas pensar en ello. Solo conecta el disco y ella se encarga del resto.
 
 ---
 
-## 🖥️ Capturas de Pantalla
+## 🖥️ La Interfaz de Usuario
 
-### Dashboard Principal — *"Tonight's the night."*
-
+### ◉ Dashboard — *"Tonight's the night."*
 <p align="center">
-  <img src="docs/img/dashboard.jpg" alt="Dashboard" width="85%"/>
+  <img src="docs/img/dashboard.png" alt="Dashboard" width="85%"/>
 </p>
+El centro de control de tu pasajero oscuro. Aquí puedes ver el registro rápido de todas las estadísticas de backup, representadas con retratos de Dexter en arte pixelado.
 
-El dashboard te muestra de un vistazo:
-- 📊 **Estadísticas** de todos tus backups (total, exitosos, datos copiados, archivos)
-- ⬤ **Estado del SSD** (conectado / desconectado)
-- 📅 **Próximo backup** programado
-- 🕐 **Último backup** realizado
-- ⚠ **Aviso** si tienes un backup pendiente
-
-### Popup al Conectar el SSD — *"El pasajero oscuro ha despertado."*
-
+### 🔪 El Ritual (Popup Inteligente)
 <p align="center">
-  <img src="docs/img/popup.jpg" alt="Popup SSD" width="65%"/>
+  <img src="docs/img/popup.png" alt="Popup SSD" width="65%"/>
 </p>
+Al detectar la conexión de tu disco, la aplicación emerge de las sombras con un diseño elegante, botones neón y sin bordes de ventana. Dos opciones, un único destino.
 
-Cada vez que conectas tu SSD al ordenador, la app lo detecta automáticamente y te pregunta si quieres iniciar el backup. **Sin abrir nada, sin buscar nada**. Solo decides: *Sí* o *No*.
+### 📁 La Mesa de Trabajo (Carpetas)
+<p align="center">
+  <img src="docs/img/carpetas.png" alt="Carpetas" width="85%"/>
+</p>
+Define las reglas y los objetivos. Selecciona exactamente qué quieres proteger y cuál es tu unidad de destino.
+
+### 📋 Las Víctimas (Historial)
+<p align="center">
+  <img src="docs/img/historial.png" alt="Historial" width="85%"/>
+</p>
+Un registro inmutable de todos los movimientos. El sistema audita cada acción y cada error. Si cancelas el backup, no deja ningún rastro aquí.
+
+### 🏆 La Colección de Trofeos
+<p align="center">
+  <img src="docs/img/trofeos.png" alt="Trofeos" width="85%"/>
+</p>
+Explora los archivos que han sido preservados exitosamente en tu unidad de respaldo.
+
+### ⚙️ El Código (Ajustes)
+<p align="center">
+  <img src="docs/img/ajustes.png" alt="Ajustes" width="85%"/>
+</p>
+Personaliza tu experiencia, configura notificaciones en segundo plano y programa la ejecución automática sin intervención manual.
 
 ---
 
