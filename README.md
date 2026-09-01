@@ -289,7 +289,7 @@ Este paso le dice a la app **cuál es tu disco externo** para que lo reconozca a
 | Es domingo a las 12:00 y no he hecho backup | Te manda un **recordatorio** (notificación) |
 | El PC estaba apagado el domingo | No pasa nada. La próxima vez que conectes el SSD, el popup te avisará |
 | No conecto mi SSD en toda la semana | La app recuerda que el backup está pendiente y te lo indica en el dashboard |
-| Cancelo el backup a mitad | Se guarda en el historial como "Cancelado", sin problemas |
+| Cancelo el backup a mitad | El sistema actúa como si nada hubiera pasado. No se guarda registro, no hay rastros. |
 | Mi SSD se desconecta durante el backup | Robocopy es tolerante a errores, reintenta automáticamente. Si no puede, lo marca como error |
 | Quiero copiar una carpeta nueva | Ve a "Carpetas" y añádela. Se incluirá en el próximo backup |
 

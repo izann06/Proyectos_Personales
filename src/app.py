@@ -146,6 +146,18 @@ class DarkPassengerApp(ctk.CTk):
             self.img_trophies = ctk.CTkImage(light_image=Image.open(hand_path), dark_image=Image.open(hand_path), size=(48, 48)) if os.path.exists(hand_path) else None
             self.img_settings = ctk.CTkImage(light_image=Image.open(tools_path), dark_image=Image.open(tools_path), size=(48, 48)) if os.path.exists(tools_path) else None
             
+            # Iconos para stat cards
+            splatter_path = os.path.join(base_dir, "assets", "images", "splatter.jpg")
+            drop_path = os.path.join(base_dir, "assets", "images", "blood_drop.jpg")
+            
+            self.icon_splatter = ctk.CTkImage(light_image=Image.open(splatter_path), dark_image=Image.open(splatter_path), size=(32, 32)) if os.path.exists(splatter_path) else None
+            self.icon_drop = ctk.CTkImage(light_image=Image.open(drop_path), dark_image=Image.open(drop_path), size=(32, 32)) if os.path.exists(drop_path) else None
+            self.icon_folder = ctk.CTkImage(light_image=Image.open(wrap_path), dark_image=Image.open(wrap_path), size=(32, 32)) if os.path.exists(wrap_path) else None
+            self.icon_knife = ctk.CTkImage(light_image=Image.open(knife_path), dark_image=Image.open(knife_path), size=(32, 32)) if os.path.exists(knife_path) else None
+            
+            # Cuchillo grande para el popup
+            self.img_knife_large = ctk.CTkImage(light_image=Image.open(knife_path), dark_image=Image.open(knife_path), size=(100, 100)) if os.path.exists(knife_path) else None
+            
         except Exception as e:
             print("No se pudo cargar la imagen:", e)
             self.knife_image = None
@@ -346,10 +358,10 @@ class DarkPassengerApp(ctk.CTk):
         cards_frame.pack(fill="x", pady=(0, 20))
         cards_frame.columnconfigure((0, 1, 2, 3), weight=1, uniform="card")
         
-        self._create_stat_card(cards_frame, 0, "Total Backups", str(stats["total_backups"]), "📊")
-        self._create_stat_card(cards_frame, 1, "Exitosos", str(stats["successful"]), "✅")
-        self._create_stat_card(cards_frame, 2, "Datos Copiados", stats.get("total_bytes_display", "0 B"), "💾")
-        self._create_stat_card(cards_frame, 3, "Archivos", str(stats["total_files"]), "📄")
+        self._create_stat_card(cards_frame, 0, "TOTAL BACKUPS", str(stats["total_backups"]), getattr(self, "icon_splatter", "🩸"))
+        self._create_stat_card(cards_frame, 1, "SUCCESSFUL", f'{stats["successful"]}', getattr(self, "icon_drop", "✅"))
+        self._create_stat_card(cards_frame, 2, "DATA COPIED", stats.get("total_bytes_display", "0 B"), getattr(self, "icon_knife", "💾"))
+        self._create_stat_card(cards_frame, 3, "FILES", str(stats["total_files"]), getattr(self, "icon_folder", "📄"))
         
         # ── Panel de estado actual ──
         status_card = ctk.CTkFrame(
@@ -586,10 +598,15 @@ class DarkPassengerApp(ctk.CTk):
         top = ctk.CTkFrame(inner, fg_color="transparent")
         top.pack(fill="x")
         
-        ctk.CTkLabel(
-            top, text=icon,
-            font=("Segoe UI Emoji", 18)
-        ).pack(side="left")
+        if isinstance(icon, str):
+            ctk.CTkLabel(
+                top, text=icon,
+                font=("Segoe UI Emoji", 18)
+            ).pack(side="left")
+        else:
+            ctk.CTkLabel(
+                top, text="", image=icon
+            ).pack(side="left")
         
         ctk.CTkLabel(
             inner, text=value,
@@ -2091,10 +2108,13 @@ class DarkPassengerApp(ctk.CTk):
         content = ctk.CTkFrame(popup, fg_color="transparent")
         content.pack(fill="both", expand=True, padx=30, pady=20)
         
-        ctk.CTkLabel(
-            content, text="🔪",
-            font=("Segoe UI Emoji", 48)
-        ).pack(pady=(10, 5))
+        if hasattr(self, 'img_knife_large') and self.img_knife_large:
+            ctk.CTkLabel(content, text="", image=self.img_knife_large).pack(pady=(10, 5))
+        else:
+            ctk.CTkLabel(
+                content, text="🔪",
+                font=("Segoe UI Emoji", 48)
+            ).pack(pady=(10, 5))
         
         ctk.CTkLabel(
             content, text="El pasajero oscuro ha despertado.",
