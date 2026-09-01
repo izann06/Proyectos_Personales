@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# PyInstaller - no subir binarios compilados
+build/
+dist/
+*.spec
+*.exe
+
+# Accesos directos personales (rutas absolutas del PC de cada usuario)
+*.lnk
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Config local (no subir datos personales)
+config.json
+history.json
