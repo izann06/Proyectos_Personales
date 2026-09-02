@@ -31,3 +31,6 @@ Thumbs.db
 # Config local (no subir datos personales)
 config.json
 history.json
+
+# Archivos de entorno (Secrets)
+.env
