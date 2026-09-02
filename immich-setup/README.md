@@ -10,24 +10,19 @@ Y lo mejor: tiene reconocimiento facial, búsqueda inteligente, álbumes compart
 
 La idea es sencilla. Son dos piezas que encajan juntas:
 
-```
-📱 Tu móvil
-   │
-   │  (WiFi, automático)
-   ▼
-💻 Tu PC con Immich
-   │  Las fotos se guardan en E:\DarkPassenger_Backup\Immich
-   │
-   │  (Cuando conectas el SSD)
-   ▼
-💾 Tu SSD externo con Dark Passenger Backup
-   Las fotos se copian de forma segura al disco externo
+```text
+📱 Tu móvil                  💻 Tu PC (Documentos, Código...)
+   │                               │
+   │ (Vía WiFi)                    │ (Vía Dark Passenger App)
+   ▼                               ▼
+   └───────────► 💾 Tu SSD Externo ◄───────────┘
+            Las dos vías conviven en el mismo disco
 ```
 
-- **Immich** se encarga de recoger las fotos del móvil y guardarlas en tu PC.
-- **Dark Passenger** se encarga de copiar esa carpeta al SSD cuando lo conectes.
+- **Immich** se encarga de recoger las fotos del móvil en tiempo real y guardarlas directamente en el SSD (`E:\`).
+- **Dark Passenger** se encarga de tus documentos, código y archivos importantes del PC, respaldándolos en el SSD.
 
-No se hablan entre ellas. No hace falta. Immich deja las fotos en una carpeta, y Dark Passenger copia esa carpeta. Así de simple.
+Ambas herramientas forman tu ecosistema de copias de seguridad completo y definitivo.
 
 ---
 
@@ -107,15 +102,16 @@ Hay que decirle a Windows que abra una "puerta" específica (el puerto 2283) par
    ```
 4. En cuanto le des a Enter, el muro caerá. Vuelve a probar en tu móvil y verás que conecta al instante.
 
-### Paso 5 — Conecta con Dark Passenger Backup
+### Paso 5 — ¿Para qué sirve Dark Passenger entonces?
 
-Ahora solo falta decirle a Dark Passenger que proteja esa carpeta:
+Como has configurado Immich para que guarde las fotos **directamente en tu SSD** (`E:\`), Dark Passenger ya no necesita copiar esas fotos (porque ya están ahí físicamente).
 
-1. Abre **Dark Passenger Backup**.
-2. Ve a **📁 Carpetas**.
-3. Pulsa **"+ Añadir Carpeta"**.
-4. Selecciona la carpeta `E:\DarkPassenger_Backup\Immich`.
-5. Hecho. La próxima vez que conectes el SSD, tus fotos del móvil también se copiarán.
+Entonces, ¿para qué sirve tener tu aplicación Dark Passenger y este repositorio de Immich juntos? Porque forman el ecosistema de seguridad perfecto con dos vías independientes:
+
+1. **La Vía del Móvil (Immich):** Se encarga **en exclusiva** de tus fotos. Coge las fotos de tu móvil por WiFi y las mete directamente en tu SSD externo de forma ordenada.
+2. **La Vía del PC (Dark Passenger):** Se encarga del resto de tu vida digital. Documentos del ordenador, facturas, apuntes, proyectos de programación y carpetas del sistema. Dark Passenger coge todo eso de tu PC y lo respalda de forma segura en tu SSD.
+
+Ambos sistemas conviven juntos en tu disco duro para darte una copia de seguridad total de tu vida digital.
 
 ---
 
