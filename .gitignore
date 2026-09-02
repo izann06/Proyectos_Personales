@@ -31,3 +31,11 @@ Thumbs.db
 # Config local (no subir datos personales)
 config.json
 history.json
+
+# Archivos de entorno (Secrets)
+.env
+immich-setup/.env
+
+# Base de datos de Immich (no subir binarios gigantes)
+immich-postgres-data/
+immich-setup/immich-postgres-data/
