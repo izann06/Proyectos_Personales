@@ -62,17 +62,33 @@ Cuando conectas tu disco externo, la aplicación detecta la conexión automátic
 
 ### 📁 Carpetas
 
+<p align="center">
+  <img src="docs/img/carpetas.png" alt="Carpetas" width="85%"/>
+</p>
+
 Aquí defines **qué carpetas quieres proteger** y **cuál es tu disco de destino**. Puedes añadir y quitar carpetas con un clic. También es donde registras tu SSD para que la app lo reconozca automáticamente cada vez que lo conectes.
 
 ### 📋 Historial
+
+<p align="center">
+  <img src="docs/img/historial.png" alt="Historial" width="85%"/>
+</p>
 
 Un registro completo de todos los backups: fecha y hora, cuántos archivos se copiaron, tamaño total, cuánto tardó y si hubo algún error. Si cancelas un backup a mitad, no aparece aquí — solo se guardan los que terminaron.
 
 ### 🏆 Trofeos
 
+<p align="center">
+  <img src="docs/img/trofeos.png" alt="Trofeos" width="85%"/>
+</p>
+
 Muestra los archivos y carpetas que ya están guardados en tu SSD. Puedes explorar lo que hay copiado y eliminar lo que ya no necesites conservar.
 
 ### ⚙️ Ajustes
+
+<p align="center">
+  <img src="docs/img/ajustes.png" alt="Ajustes" width="85%"/>
+</p>
 
 Desde aquí configuras cuándo quieres que la app te recuerde hacer el backup (día de la semana y hora), si quieres recibir notificaciones cuando lo olvidas, y si quieres que el popup aparezca automáticamente al conectar el disco.
 
