@@ -5,8 +5,7 @@
 <h1 align="center">🔪 Dark Passenger Backup</h1>
 
 <p align="center">
-  <em>"Tonight's the night. And it's going to happen again and again..."</em><br>
-  <strong>— Dexter Morgan</strong>
+  <em>Silencioso. Automático. Siempre ahí.</em>
 </p>
 
 <p align="center">
@@ -27,51 +26,112 @@
 
 **Dark Passenger Backup** es una aplicación de escritorio para Windows que protege tus archivos haciendo copias de seguridad automáticas a tu disco duro externo (SSD/HDD USB).
 
-Inspirada en la estética y el universo de **Dexter**, la serie de televisión, la app vive en las sombras de tu ordenador como un *pasajero oscuro*: silenciosa, invisible, siempre vigilante. Cuando conectas tu SSD externo, **despierta y te pregunta si quieres hacer la copia de seguridad**. Si olvidas hacerla, te manda un recordatorio. 
+La app vive en las sombras de tu ordenador: silenciosa, invisible, siempre vigilante. Cuando conectas tu SSD externo, **despierta y te pregunta si quieres hacer la copia de seguridad**. Si olvidas hacerla, te manda un recordatorio.
 
 No necesitas pensar en ello. Solo conecta el disco y ella se encarga del resto.
-
-> *"I just know there's something dark in me. And I hide it. I certainly don't talk about it, but it's there. Always."* — Y tu backup también. Siempre ahí.
 
 ---
 
 ## 🖥️ La Interfaz de Usuario
 
-### ◉ Dashboard — *"Tonight's the night."*
+La interfaz está dividida en varias secciones accesibles desde la barra lateral izquierda. Aquí te explicamos qué ves en cada una:
+
+### ◉ Dashboard
+
 <p align="center">
   <img src="docs/img/dashboard.png" alt="Dashboard" width="85%"/>
 </p>
-El centro de control de tu pasajero oscuro. Aquí puedes ver el registro rápido de todas las estadísticas de backup, representadas con retratos de Dexter en arte pixelado.
+
+Es la pantalla principal que ves al abrir la app. De un vistazo tienes toda la información importante:
+
+- **Arriba a la derecha** hay un botón grande rojo **"INICIAR BACKUP"** para lanzar la copia manualmente cuando quieras, sin esperar a que la app te lo pida.
+- **Las 4 tarjetas** muestran el total de backups realizados, cuántos salieron bien, cuántos datos has copiado en total y cuántos archivos.
+- **Estado del Sistema** te dice si el SSD está conectado ahora mismo, cuándo está programado el próximo backup y cuándo fue el último que se hizo.
+- **Víctimas Recientes** es el registro de los últimos backups, con fecha, archivos copiados y si salió todo bien. Cuando hay un backup en curso, aparece aquí mismo la barra de **Progreso del Ritual** con el nombre del archivo que se está copiando, cuántos archivos van y el porcentaje completado.
 
 ### 🔪 El Ritual (Popup Inteligente)
-<p align="center">
-  <img src="docs/img/popup.png" alt="Popup SSD" width="65%"/>
-</p>
-Al detectar la conexión de tu disco, la aplicación emerge de las sombras con un diseño elegante, botones neón y sin bordes de ventana. Dos opciones, un único destino.
 
-### 📁 La Mesa de Trabajo (Carpetas)
 <p align="center">
-  <img src="docs/img/carpetas.png" alt="Carpetas" width="85%"/>
+  <img src="docs/img/popup_real.png" alt="Popup SSD" width="65%"/>
 </p>
-Define las reglas y los objetivos. Selecciona exactamente qué quieres proteger y cuál es tu unidad de destino.
 
-### 📋 Las Víctimas (Historial)
-<p align="center">
-  <img src="docs/img/historial.png" alt="Historial" width="85%"/>
-</p>
-Un registro inmutable de todos los movimientos. El sistema audita cada acción y cada error. Si cancelas el backup, no deja ningún rastro aquí.
+Cuando conectas tu disco externo, la aplicación detecta la conexión automáticamente y muestra esta ventana emergente. Te dice qué disco ha detectado y cuánto espacio libre tiene. Tienes dos opciones:
 
-### 🏆 La Colección de Trofeos
-<p align="center">
-  <img src="docs/img/trofeos.png" alt="Trofeos" width="85%"/>
-</p>
-Explora los archivos que han sido preservados exitosamente en tu unidad de respaldo.
+- **"Sí, hazlo"** — empieza el backup ahora mismo.
+- **"No, ahora no"** — lo pospone. La app recordará que tienes un backup pendiente.
 
-### ⚙️ El Código (Ajustes)
+### 📁 Carpetas
+
+Aquí defines **qué carpetas quieres proteger** y **cuál es tu disco de destino**. Puedes añadir y quitar carpetas con un clic. También es donde registras tu SSD para que la app lo reconozca automáticamente cada vez que lo conectes.
+
+### 📋 Historial
+
+Un registro completo de todos los backups: fecha y hora, cuántos archivos se copiaron, tamaño total, cuánto tardó y si hubo algún error. Si cancelas un backup a mitad, no aparece aquí — solo se guardan los que terminaron.
+
+### 🏆 Trofeos
+
+Muestra los archivos y carpetas que ya están guardados en tu SSD. Puedes explorar lo que hay copiado y eliminar lo que ya no necesites conservar.
+
+### ⚙️ Ajustes
+
+Desde aquí configuras cuándo quieres que la app te recuerde hacer el backup (día de la semana y hora), si quieres recibir notificaciones cuando lo olvidas, y si quieres que el popup aparezca automáticamente al conectar el disco.
+
+---
+
+## 🚀 Ejemplo real: copiando mi carpeta Cosas_Personales
+
+Así se ve el proceso completo paso a paso, desde que abro la app hasta que termina el backup.
+
+### Paso 1 — Abro la app y pulso "INICIAR BACKUP"
+
 <p align="center">
-  <img src="docs/img/ajustes.png" alt="Ajustes" width="85%"/>
+  <img src="docs/img/ejemplo_dashboard.png" alt="Dashboard con botón INICIAR BACKUP" width="85%"/>
 </p>
-Personaliza tu experiencia, configura notificaciones en segundo plano y programa la ejecución automática sin intervención manual.
+
+Tengo el SSD ya conectado (se ve abajo a la izquierda: *SSD Externo (E:) — 1.7 TB libres*). Pulso el botón rojo **"INICIAR BACKUP"** en la esquina superior derecha para arrancar la copia manualmente.
+
+---
+
+### Paso 2 — El backup arranca y puedo ver el progreso en tiempo real
+
+<p align="center">
+  <img src="docs/img/ejemplo_progreso.png" alt="Progreso del Ritual al 17%" width="85%"/>
+</p>
+
+Aparece el bloque **"Progreso del Ritual"** en la parte de abajo del dashboard. La barra roja avanza a medida que se van copiando los archivos. Puedo ver:
+
+- El **nombre del archivo** que se está procesando en este momento.
+- **Cuántos archivos van** del total (en este caso 3.933 de 22.810).
+- La **carpeta** que se está copiando: `[1/1] Procesando: Cosas_Personales`.
+- El **porcentaje** completado a la derecha (17%).
+
+Todo en tiempo real, sin tener que hacer nada más.
+
+---
+
+### Paso 3 — El backup termina y aparece el resumen
+
+<p align="center">
+  <img src="docs/img/ejemplo_completado.png" alt="Ritual Completado" width="55%"/>
+</p>
+
+Cuando termina, aparece esta ventana con el resumen completo:
+
+- **22.810 archivos** copiados correctamente.
+- **3,7 GB** de datos guardados.
+- Ha tardado **2 minutos y 14 segundos**.
+
+Pulso **"Aceptar"** y listo.
+
+---
+
+### Paso 4 — Los archivos aparecen en la sección Trofeos
+
+<p align="center">
+  <img src="docs/img/ejemplo_trofeos.png" alt="Trofeos con Cosas_Personales" width="85%"/>
+</p>
+
+En la sección **Trofeos** ya aparece la carpeta `Cosas_Personales` guardada en el SSD (`E:\DarkPassenger_Backup`). Desde aquí puedo verla o borrarla si ya no la necesito.
 
 ---
 
@@ -114,8 +174,14 @@ Personaliza tu experiencia, configura notificaciones en segundo plano y programa
    │  backup?     │    │  → AVISO 🔔   │
    └──────┬───────┘    └───────────────┘
      Sí   │
-          ▼
-   ┌──────────────┐
+          ├─────────────────────────────────┐
+          │                                 │
+          │   (O manualmente: abres la app  │
+          │    y pulsas "INICIAR BACKUP"    │
+          │    si el SSD ya está conectado) │
+          │                                 │
+          ▼                                 │
+   ┌──────────────┐◄────────────────────────┘
    │  ROBOCOPY    │
    │  Copia solo  │
    │  lo nuevo/   │
@@ -233,8 +299,6 @@ Puedes buscar **"Dark Passenger Backup"** en tu Escritorio (tendrá un icono de 
 
 O simplemente, **conecta tu SSD configurado**. El vigilante que corre en segundo plano detectará el disco y **abrirá la aplicación automáticamente** mostrándote el popup de backup.
 
-¡Ya está! La interfaz de Dexter te dará la bienvenida.
-
 ---
 
 ## 🔧 Configuración inicial (Primera vez)
@@ -243,7 +307,7 @@ Una vez abierta la app, necesitas hacer dos cosas: **decirle qué carpetas copia
 
 ### 1. Selecciona tus carpetas 📂
 
-1. En la barra lateral izquierda, haz clic en **"📁 Carpetas"** (La Mesa de Trabajo)
+1. En la barra lateral izquierda, haz clic en **"📁 Carpetas"**
 2. Pulsa **"+ Añadir Carpeta"**
 3. Selecciona cualquier carpeta que quieras proteger:
    - Tus documentos
@@ -266,7 +330,7 @@ Este paso le dice a la app **cuál es tu disco externo** para que lo reconozca a
 
 ### 3. Ajusta el horario ⏰ (opcional)
 
-1. Ve a **"⚙ Ajustes"** (El Código)
+1. Ve a **"⚙ Ajustes"**
 2. Elige el **día** (por defecto: Domingo) y la **hora** (por defecto: 12:00)
 3. Activa o desactiva los **recordatorios**
 
@@ -284,18 +348,6 @@ Este paso le dice a la app **cuál es tu disco externo** para que lo reconozca a
 
 ---
 
-## 🗂️ Las 4 secciones de la app
-
-| Sección | Nombre temático | Qué haces ahí |
-|:---:|:---:|:---|
-| **◉ Dashboard** | *"Tonight's the night."* | Ver estadísticas, estado del sistema, iniciar backup manual, ver últimos backups |
-| **📁 Carpetas** | *"La Mesa de Trabajo"* | Añadir/quitar carpetas a copiar, seleccionar tu SSD destino |
-| **📋 Historial** | *"Las Víctimas"* | Ver el registro completo de todos los backups: fecha, archivos, tamaño, duración, errores |
-| **🏆 Trofeos** | *"La Colección de Trofeos"* | Explorar y eliminar los archivos ya copiados en el SSD. |
-| **⚙ Ajustes** | *"El Código"* | Configurar día/hora del backup, recordatorios, popup al conectar, flags de Robocopy |
-
----
-
 ## 🧠 ¿Qué pasa si...?
 
 | Escenario | Qué hace la app |
@@ -307,20 +359,6 @@ Este paso le dice a la app **cuál es tu disco externo** para que lo reconozca a
 | Cancelo el backup a mitad | El sistema actúa como si nada hubiera pasado. No se guarda registro, no hay rastros. |
 | Mi SSD se desconecta durante el backup | Robocopy es tolerante a errores, reintenta automáticamente. Si no puede, lo marca como error |
 | Quiero copiar una carpeta nueva | Ve a "Carpetas" y añádela. Se incluirá en el próximo backup |
-
----
-
-## 🎨 El Tema Dexter
-
-Toda la interfaz está diseñada con la estética del universo de Dexter:
-
-| Elemento | Detalle |
-|:---|:---|
-| **Colores** | Negro profundo `#0D0D0D`, rojo sangre `#8B0000`, carmesí `#C41E3A` |
-| **Tipografía** | `Consolas` para títulos (monoespaciada, fría), `Segoe UI` para texto |
-| **Vocabulario** | Dashboard → *"Tonight's the night"*, Carpetas → *"La Mesa de Trabajo"*, Historial → *"Las Víctimas"*, Trofeos → *"La Colección de Trofeos"*, Ajustes → *"El Código"* |
-| **Ilustraciones**| Exclusivo arte 16-bits (Pixel Art) en las cabeceras representando objetos de la serie (microscopio, portaobjetos, plástico, mano protésica) |
-| **Iconos** | 🔪 Cuchillo (barra de progreso), 💀 Calavera, 🩸 Gota de sangre pura (acceso directo) |
 
 ---
 
@@ -361,9 +399,6 @@ Este proyecto está bajo la licencia **MIT**. Úsalo, modifícalo, compártelo.
 
 <p align="center">
   <br>
-  <em>"But I'm not the monster he wants me to be. So I'm neither man nor beast.<br>I'm something new entirely. With my own set of rules."</em><br>
-  <strong>— Dexter Morgan</strong>
-  <br><br>
   <img src="https://img.shields.io/badge/Made_with-🔪_&_🩸-8B0000?style=for-the-badge" alt="Made with"/>
   <br><br>
   <strong>Dark Passenger Backup</strong> — Tus archivos están a salvo. El pasajero oscuro los protege.
