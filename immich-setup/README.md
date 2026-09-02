@@ -121,7 +121,13 @@ Ambos sistemas conviven juntos en tu disco duro para darte una copia de segurida
 Sí. Immich es un servidor que corre en tu PC. Si el PC está apagado, las fotos se quedan en el móvil esperando. En cuanto enciendas el PC, la app del móvil las enviará automáticamente.
 
 **¿Tengo que abrir Docker y poner `docker compose up -d` cada vez que enciendo el ordenador?**
-¡No! Está configurado con la instrucción `restart: always`. Esto significa que si programas Docker Desktop para que se abra solo al iniciar Windows (suele venir así por defecto), en el momento en que enciendas tu ordenador, los contenedores de Immich arrancarán mágicamente en segundo plano sin que tú toques nada.
+¡No! Está configurado con la instrucción `restart: always`. Esto significa que si Docker Desktop se abre al iniciar Windows, tus contenedores arrancarán mágicamente en segundo plano sin que tú toques nada.
+
+**Para asegurarte de que Docker arranca con tu PC:**
+1. Abre **Docker Desktop** en tu ordenador.
+2. Haz clic en la **Rueda de engranaje (Ajustes)** arriba a la derecha.
+3. En la pestaña **General**, marca la casilla que dice: *"Start Docker Desktop when you log in"*.
+4. Dale a **Apply & restart** abajo a la derecha. ¡Ya está! Nunca más tendrás que acordarte de abrirlo.
 
 ### ¿Se borran las fotos de mi móvil?
 No, a menos que tú lo hagas manualmente. Immich solo copia, no borra nada del móvil.
