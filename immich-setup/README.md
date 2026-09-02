@@ -120,14 +120,20 @@ Ambos sistemas conviven juntos en tu disco duro para darte una copia de segurida
 ### ¿Necesito tener el PC encendido para que funcione?
 Sí. Immich es un servidor que corre en tu PC. Si el PC está apagado, las fotos se quedan en el móvil esperando. En cuanto enciendas el PC, la app del móvil las enviará automáticamente.
 
+**¿Tengo que abrir Docker y poner `docker compose up -d` cada vez que enciendo el ordenador?**
+¡No! Está configurado con la instrucción `restart: always`. Esto significa que si programas Docker Desktop para que se abra solo al iniciar Windows (suele venir así por defecto), en el momento en que enciendas tu ordenador, los contenedores de Immich arrancarán mágicamente en segundo plano sin que tú toques nada.
+
 ### ¿Se borran las fotos de mi móvil?
 No, a menos que tú lo hagas manualmente. Immich solo copia, no borra nada del móvil.
 
-### ¿Qué pasa si reinstalo Immich?
-Mientras no borres la carpeta `E:\DarkPassenger_Backup\Immich`, tus fotos siguen ahí. La base de datos (álbumes, caras, etc.) se guarda en un volumen de Docker que también persiste.
+### Si se me rompe el SSD pero tengo el volumen de Docker... ¿salvo mis fotos?
+**NO.** Mucho cuidado con esto: el "volumen de Docker" (la base de datos) solo guarda *los metadatos* (nombres de los álbumes, las caras reconocidas, tus contraseñas, etc.). **Las fotos y vídeos físicos reales** se guardan en la carpeta `UPLOAD_LOCATION` (es decir, dentro de tu SSD).
+- Si se rompe el PC pero el SSD sobrevive: Estás a salvo. Tienes las fotos en el SSD.
+- Si se rompe el SSD: **Pierdes las fotos**. Por eso los profesionales siempre tienen *dos* copias físicas de las cosas importantes.
 
-### ¿Puedo acceder desde fuera de casa?
-Sí, pero requiere configuración extra (un túnel o abrir puertos en el router). Por defecto solo funciona dentro de tu red WiFi local, que es lo más seguro.
+### ¿Puedo acceder desde fuera de casa (con 4G o en la calle)?
+Por defecto, no. Immich solo funciona cuando tu móvil está conectado al mismo WiFi que el ordenador, que es lo más seguro y privado. 
+Sin embargo, **sí es posible hacerlo** si configuras una red virtual segura (como **Tailscale** o **Cloudflare Tunnels**). Son herramientas gratuitas que instalan un "túnel" privado entre tu móvil y tu PC estés donde estés, sin necesidad de abrir puertos peligrosos en el router de tu casa.
 
 ---
 
