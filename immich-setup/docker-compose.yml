@@ -4,7 +4,7 @@
 # Este archivo levanta 4 servicios que trabajan juntos:
 #   1. El servidor de Immich (la app en sí)
 #   2. Machine Learning (reconocimiento facial, búsqueda inteligente)
-#   3. Redis (una memoria rápida temporal que Immich necesita)
+#   3. Redis / Valkey (una memoria rápida temporal que Immich necesita)
 #   4. PostgreSQL (la base de datos donde se guarda todo)
 #
 # Para arrancarlo: docker compose up -d
@@ -27,19 +27,18 @@ services:
     volumes:
       # Aquí le decimos DÓNDE guardar las fotos en tu PC.
       # La variable UPLOAD_LOCATION está definida en el archivo .env
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${UPLOAD_LOCATION}:/data
       # Esto sincroniza la hora del contenedor con la de tu PC
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
     ports:
       # Puerto para acceder desde el navegador: http://localhost:2283
-      - "2283:2283"
+      - '2283:2283'
     depends_on:
-      # No puede arrancar hasta que Redis y la base de datos estén listos
       - redis
       - database
-    restart: always    # Si se cae, se reinicia solo
+    restart: always
 
   # ---------------------------------------------------------------------------
   # 🧠 MACHINE LEARNING
@@ -57,15 +56,13 @@ services:
     restart: always
 
   # ---------------------------------------------------------------------------
-  # ⚡ REDIS
+  # ⚡ VALKEY (REDIS)
   # Una base de datos ultra-rápida que Immich usa como memoria temporal.
-  # Piensa en ella como la "memoria RAM" de Immich.
   # ---------------------------------------------------------------------------
   redis:
     container_name: immich_redis
-    image: docker.io/redis:6.2-alpine
+    image: docker.io/valkey/valkey:9
     healthcheck:
-      # Cada cierto tiempo comprueba que Redis sigue vivo
       test: redis-cli ping || exit 1
     restart: always
 
@@ -76,34 +73,17 @@ services:
   # ---------------------------------------------------------------------------
   database:
     container_name: immich_postgres
-    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0
+    # Nueva imagen de base de datos oficial para Immich v1.115+
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}       # Contraseña (definida en .env)
       POSTGRES_USER: ${DB_USERNAME}           # Usuario (definido en .env)
       POSTGRES_DB: ${DB_DATABASE_NAME}        # Nombre de la base de datos
-      POSTGRES_INITDB_ARGS: '--data-checksums'  # Verificación de integridad
+      POSTGRES_INITDB_ARGS: '--data-checksums'
     volumes:
-      # Los datos de la base de datos se guardan aquí (volumen de Docker)
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: pg_isready --dbname='${DB_DATABASE_NAME}' --username='${DB_USERNAME}' || exit 1
-      interval: 5m
-      start_interval: 30s
-      start_period: 5m
-    command:
-      - postgres
-      - -c
-      - shared_preload_libraries=vectors.so     # Extensión para búsqueda por IA
-      - -c
-      - search_path="$$user", public, vectors
-      - -c
-      - logging_collector=on
-      - -c
-      - max_wal_size=2GB
-      - -c
-      - shared_buffers=512MB
-      - -c
-      - wal_compression=on
+      # Dónde se guardan los datos internos de la base de datos
+      - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
+    shm_size: 128mb
     restart: always
 
 # =============================================================================
@@ -112,5 +92,4 @@ services:
 # Aunque borres los contenedores, estos datos se mantienen.
 # =============================================================================
 volumes:
-  pgdata:         # Datos de la base de datos PostgreSQL
   model-cache:    # Modelos de IA descargados para reconocimiento facial
