@@ -34,3 +34,6 @@ history.json
 
 # Archivos de entorno (Secrets)
 .env
+
+# Base de datos de Immich (no subir binarios gigantes)
+immich-postgres-data/
