@@ -44,14 +44,14 @@ Immich funciona con Docker. Si no lo tienes instalado:
 
 ### Paso 1 — Revisa la configuración
 
-Abre el archivo `.env` que está en esta misma carpeta. Verás esto:
+Abre el archivo `.env.example` que está en esta misma carpeta. Verás esto:
 
 ```
-UPLOAD_LOCATION=E:\DarkPassenger_Backup\Immich
+UPLOAD_LOCATION=C:\
 DB_PASSWORD=postgres
 ```
 
-- **UPLOAD_LOCATION**: Es la carpeta donde se van a guardar todas tus fotos. Está configurada para que vayan directamente a `E:\DarkPassenger_Backup\Immich`, así Dark Passenger ya tiene acceso a ellas cuando hagas backup.
+- **UPLOAD_LOCATION**: Es la carpeta donde se van a guardar todas tus fotos. Está configurada para que vayan directamente a la ruta que pongas, así Dark Passenger ya tiene acceso a ellas cuando hagas backup.
 - **DB_PASSWORD**: Cámbiala por algo más seguro si quieres (no necesitas recordarla).
 
 ### Paso 2 — Arranca Immich
@@ -88,6 +88,24 @@ Te pedirá crear una cuenta de administrador. Ponle tu nombre, email y una contr
 3. Inicia sesión con la cuenta que acabas de crear.
 4. Activa la copia de seguridad automática en la app.
 5. ¡Listo! Tus fotos empezarán a enviarse automáticamente.
+
+### ⚠️ IMPORTANTE: Si la app del móvil no logra conectar (Problema del Firewall)
+
+A veces, al poner la IP en el móvil, la app se queda cargando y da error. **Esto es completamente normal en Windows.**
+
+**¿Por qué ocurre?**
+Windows tiene un "escudo" (el Firewall) que bloquea por defecto cualquier conexión entrante a tu PC para protegerlo. Aunque Immich esté funcionando perfectamente por dentro, el Firewall detiene la petición del móvil antes de que llegue a Immich.
+
+**¿Cómo se soluciona?**
+Hay que decirle a Windows que abra una "puerta" específica (el puerto 2283) para dejar pasar a tu móvil.
+
+1. Presiona la tecla **Windows**, escribe `PowerShell`.
+2. A la derecha, pulsa en **Ejecutar como administrador** (dile que Sí a la ventanita).
+3. Pega este comando y dale a Enter:
+   ```powershell
+   New-NetFirewallRule -DisplayName "Immich Port 2283" -Direction Inbound -LocalPort 2283 -Protocol TCP -Action Allow
+   ```
+4. En cuanto le des a Enter, el muro caerá. Vuelve a probar en tu móvil y verás que conecta al instante.
 
 ### Paso 5 — Conecta con Dark Passenger Backup
 
