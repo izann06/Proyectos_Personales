@@ -127,7 +127,7 @@ Sí. Immich es un servidor que corre en tu PC. Si el PC está apagado, las fotos
 1. Abre **Docker Desktop** en tu ordenador.
 2. Haz clic en la **Rueda de engranaje (Ajustes)** arriba a la derecha.
 3. En la pestaña **General**, marca la casilla que dice: *"Start Docker Desktop when you log in"*.
-4. Dale a **Apply & restart** abajo a la derecha. ¡Ya está! Nunca más tendrás que acordarte de abrirlo.
+4. Dale a **Apply** abajo a la derecha. ¡Ya está! Nunca más tendrás que acordarte de abrirlo.
 
 ### ¿Se borran las fotos de mi móvil?
 No, a menos que tú lo hagas manualmente. Immich solo copia, no borra nada del móvil.
@@ -135,7 +135,7 @@ No, a menos que tú lo hagas manualmente. Immich solo copia, no borra nada del m
 ### Si se me rompe el SSD pero tengo el volumen de Docker... ¿salvo mis fotos?
 **NO.** Mucho cuidado con esto: el "volumen de Docker" (la base de datos) solo guarda *los metadatos* (nombres de los álbumes, las caras reconocidas, tus contraseñas, etc.). **Las fotos y vídeos físicos reales** se guardan en la carpeta `UPLOAD_LOCATION` (es decir, dentro de tu SSD).
 - Si se rompe el PC pero el SSD sobrevive: Estás a salvo. Tienes las fotos en el SSD.
-- Si se rompe el SSD: **Pierdes las fotos**. Por eso los profesionales siempre tienen *dos* copias físicas de las cosas importantes.
+- Si se rompe el SSD: **Pierdes las fotos** (Bueno las sigues teniendo en tu móvil si no las has borrado,claro). Por eso es recomendable tener siempre *dos* copias físicas de las cosas importantes.
 
 ### ¿Puedo acceder desde fuera de casa (con 4G o en la calle)?
 Por defecto, no. Immich solo funciona cuando tu móvil está conectado al mismo WiFi que el ordenador, que es lo más seguro y privado. 
