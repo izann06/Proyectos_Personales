@@ -1,52 +1,65 @@
 import os
+import json
 from dotenv import load_dotenv
 from github import Github, Auth
 
-# 1. Cargo las variables del archivo .env
-load_dotenv()
-
-# 2. Me guardo el token. os.getenv busca "GITHUB_TOKEN" en el .env
-github_token = os.getenv("GITHUB_TOKEN")
-
-if not github_token:
-    print("❌ Error: No se encontró GITHUB_TOKEN en el archivo .env")
-else:
-    # 3. Inicio sesión en GitHub usando la forma moderna con Auth
-    auth = Auth.Token(github_token)
+def obtener_perfil_github(token: str):
+    """
+    Se conecta a GitHub y extrae el perfil profesional completo (repositorios originales).
+    Devuelve un diccionario con toda la información valiosa estructurada para la IA.
+    """
+    auth = Auth.Token(token)
     g = Github(auth=auth)
-    
-    # 4. Obtengo el usuario autenticado.
     usuario = g.get_user()
     
-    # 5. Imprimo el nombre para comprobar que funciona :)
-    print(f"✅ ¡Conexión exitosa! Autenticado como: {usuario.login}")
-
-    print("🔍 Analizando tus repositorios...\n")
+    perfil_estructurado = []
     
-    # 6. Creo un 'set' (conjunto) para guardar las tecnologías sin que se repitan
-    tecnologias_usadas = set()
-    
-    # 6.1 Recorro todos los repositorios que tengo en mi cuenta de GitHub
-    repos = usuario.get_repos()
-    
-    for repo in repos:
+    for repo in usuario.get_repos():
         if not repo.fork:
-            # 6.2 Obtengo TODOS los lenguajes del proyecto
-            lenguajes_del_repo = repo.get_languages()
+            # 1. Intentamos obtener el README
+            try:
+                readme = repo.get_readme().decoded_content.decode('utf-8')
+            except:
+                readme = ""
             
-            # lenguajes_del_repo es un diccionario (ej: {'Python': 5000, 'HTML': 200}). 
-            # .keys() saca solo los nombres ('Python', 'HTML')
-            for lenguaje in lenguajes_del_repo.keys():
-                tecnologias_usadas.add(lenguaje)
+            # 2. Recopilamos absolutamente todos los datos que le importan a un reclutador/IA
+            datos_repo = {
+                "nombre": repo.name,
+                "descripcion": repo.description if repo.description else "",
+                "url": repo.html_url,
+                "etiquetas": repo.get_topics(),
+                "lenguajes_bytes": repo.get_languages(),
+                "estrellas": repo.stargazers_count,
+                "fecha_actualizacion": str(repo.updated_at),
+                "readme_texto": readme
+            }
+            perfil_estructurado.append(datos_repo)
             
-            # 6.3 Busco las etiquetas (topics) del proyecto
-            etiquetas = repo.get_topics()
-            for etiqueta in etiquetas:
-                # Las etiquetas suelen estar en minúscula, las pongo bonitas (ej. 'aws' -> 'Aws')
-                tecnologias_usadas.add(etiqueta.title())
+    # Devolvemos el paquete completo
+    return {
+        "usuario": usuario.login,
+        "repositorios": perfil_estructurado
+    }
 
-    # 7. Imprimo mi lista maestra de tecnologías
-    print("🚀 Tecnologías y lenguajes detectados en todo tu GitHub:")
-    for tech in tecnologias_usadas:
-        print(f" ✅ {tech}")
-
+# Esta línea significa: "Solo ejecuta lo de abajo si ejecuto este archivo directamente desde la terminal"
+if __name__ == "__main__":
+    load_dotenv()
+    mi_token = os.getenv("GITHUB_TOKEN")
+    
+    if mi_token:
+        print("Extrayendo tu perfil profesional de GitHub... (Esto puede tardar unos segundos)")
+        
+        # 1. Llamamos a nuestra función maestra
+        datos_completos = obtener_perfil_github(mi_token)
+        
+        # 2. Guardamos el resultado en un archivo JSON para poder leerlo tranquilos
+        nombre_archivo = f"perfil_{datos_completos['usuario']}.json"
+        
+        with open(nombre_archivo, "w", encoding="utf-8") as f:
+            # json.dump escribe los datos de forma bonita (indent=4)
+            json.dump(datos_completos, f, ensure_ascii=False, indent=4)
+            
+        print(f"Exito total! Toda la información de tu perfil se ha guardado en: {nombre_archivo}")
+        print("CONSEJO: Busca ese archivo en tu editor y ábrelo para que veas la cantidad de datos que tenemos ahora.")
+    else:
+        print("Error: No se encontró GITHUB_TOKEN en el archivo .env")

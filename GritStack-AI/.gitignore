@@ -16,3 +16,6 @@ env/
 .vscode/
 .idea/
 .DS_Store
+
+# Datos generados por la aplicación
+perfil_*.json
