@@ -71,6 +71,33 @@ Para que la aplicación se conecte con los servicios externos, necesitas crear t
 
 ---
 
+## 💻 Instalación y Entorno Virtual (venv)
+
+Para ejecutar este proyecto de forma segura, utilizamos un **Entorno Virtual (`venv`)**. Esto es como una "caja aislada" que evita que las librerías de este proyecto entren en conflicto con otros proyectos de tu ordenador.
+
+Sigue estos pasos en tu terminal (en la raíz del proyecto):
+
+1. **Crear el entorno virtual:**
+   ```bash
+   python -m venv venv
+   ```
+2. **Activar el entorno:**
+   - En Windows: `.\venv\Scripts\activate`
+   *(Sabrás que está activo si ves un `(venv)` al principio de tu terminal, aunque algunas terminales modernas como Warp pueden ocultarlo).*
+3. **Instalar las dependencias:**
+   `pip` es el instalador de paquetes de Python. Le diremos que lea nuestra "lista de la compra" (`requirements.txt`) e instale todo dentro del entorno aislado:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. **Probar la conexión inicial:**
+   Para comprobar que todo está bien configurado y el token funciona, ejecutamos el script de prueba:
+   ```bash
+   python src/data/github_parser.py
+   ```
+   *¿Qué hace este script exactamente?* Este código lee tu clave secreta del `.env` de forma segura, se conecta a los servidores de GitHub usando el método de autenticación moderna (`Auth.Token`) y te devuelve tu nombre de usuario. Si ves un mensaje diciendo `✅ ¡Conexión exitosa! Autenticado como: ...`, significa que la aplicación ya tiene permiso para leer tu código y repositorios como si fueras tú. ¡Magia! ✨
+
+---
+
 ## 🚀 Próximos Pasos (Lo que estoy haciendo ahora)
 1. **Fase 0**: Configurando la arquitectura y las herramientas básicas.
 2. **Fase 1**: Conectaré la API de GitHub para que la aplicación empiece a "leer" repositorios.
