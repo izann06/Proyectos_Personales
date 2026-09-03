@@ -23,17 +23,30 @@ else:
 
     print("🔍 Analizando tus repositorios...\n")
     
-    # 6. Busco en todos mis repositorios
+    # 6. Creo un 'set' (conjunto) para guardar las tecnologías sin que se repitan
+    tecnologias_usadas = set()
+    
+    # 6.1 Recorro todos los repositorios que tengo en mi cuenta de GitHub
     repos = usuario.get_repos()
     
-    # 7. Hago un bucle for para revisar los repositorios uno a uno
     for repo in repos:
-        # 7.1 Solo quiero mis proyectos originales (ignoramos los 'forks')
         if not repo.fork:
-            nombre = repo.name
-            lenguaje = repo.language
+            # 6.2 Obtengo TODOS los lenguajes del proyecto
+            lenguajes_del_repo = repo.get_languages()
             
-            # 7.2 Imprimimos el nombre y el lenguaje principal
-            print(f"📁 Proyecto: {nombre}")
-            print(f"   💻 Lenguaje principal: {lenguaje}")
-            print("-" * 30)
+            # lenguajes_del_repo es un diccionario (ej: {'Python': 5000, 'HTML': 200}). 
+            # .keys() saca solo los nombres ('Python', 'HTML')
+            for lenguaje in lenguajes_del_repo.keys():
+                tecnologias_usadas.add(lenguaje)
+            
+            # 6.3 Busco las etiquetas (topics) del proyecto
+            etiquetas = repo.get_topics()
+            for etiqueta in etiquetas:
+                # Las etiquetas suelen estar en minúscula, las pongo bonitas (ej. 'aws' -> 'Aws')
+                tecnologias_usadas.add(etiqueta.title())
+
+    # 7. Imprimo mi lista maestra de tecnologías
+    print("🚀 Tecnologías y lenguajes detectados en todo tu GitHub:")
+    for tech in tecnologias_usadas:
+        print(f" ✅ {tech}")
+
