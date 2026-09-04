@@ -98,6 +98,40 @@ Sigue estos pasos en tu terminal (en la raíz del proyecto):
 
 ---
 
-## 🚀 Próximos Pasos (Lo que estoy haciendo ahora)
-1. **Fase 0**: Configurando la arquitectura y las herramientas básicas.
-2. **Fase 1**: Conectaré la API de GitHub para que la aplicación empiece a "leer" repositorios.
+## 🗺️ Diario de Desarrollo (Roadmap)
+
+Construir una plataforma de Inteligencia Artificial desde cero no es tarea fácil. Aquí documento mi viaje, fase a fase, con sus objetivos, retos superados y los hitos alcanzados. ¡Acompáñame en el proceso!
+
+### ⚙️ Fase 0: Arquitectura y Cimientos
+* **🎯 Objetivo:** Establecer una base sólida, segura y escalable para el proyecto. 
+* **🚧 Retos / Inconvenientes:** Entender cómo aislar el proyecto para no mezclar librerías y configurar la seguridad de los tokens para no exponer datos sensibles en internet.
+* **✅ Lo que he logrado:**
+  - Creación del entorno virtual (`venv`) para el aislamiento de dependencias.
+  - Implementación del archivo `.env` para proteger las credenciales (AWS y GitHub).
+  - Estructuración profesional de carpetas siguiendo el patrón `src/core`, `src/data`, `src/ui`.
+
+---
+
+### 🐙 Fase 1: Extracción de Evidencias (GitHub Parser)
+* **🎯 Objetivo:** Conectar Python con GitHub para descargar toda mi trayectoria como programador (repositorios, lenguajes, fechas, descripciones y READMEs).
+* **🚧 Retos / Inconvenientes:** GitHub a veces clasifica erróneamente tecnologías (ej: detecta un `.url` o un `Batchfile` como lenguaje de programación importante). Además, imprimir emojis (`⏳`, `✅`) en la consola de Windows causaba cierres inesperados por problemas de codificación (`UnicodeEncodeError`).
+* **✅ Lo que he logrado:**
+  - Script automatizado que limpia y filtra los repositorios basura o *forks*.
+  - Generación de un archivo `perfil_izann06.json` estructurado con la información pura, listo para ser consumido por la IA.
+  - Resolución de errores de codificación en terminales Windows.
+
+---
+
+### 🧠 Fase 2: El Cerebro de la Operación (LangChain + AWS Bedrock)
+* **🎯 Objetivo:** Enviar el inmenso JSON generado en la Fase 1 a un modelo fundacional avanzado (Claude 3) para que extraiga insights reales y evalúe mis verdaderas *skills*.
+* **🚧 Retos / Inconvenientes:** La arquitectura de Amazon Bedrock cambió para los nuevos modelos (como Claude 4.6), exigiendo usar *Inference Profiles* (`us.anthropic.claude-sonnet-4-6`) en lugar de llamar al modelo por su nombre a secas. Además, la IA generaba informes tan visuales (con emojis) que rompía de nuevo la consola al intentar imprimirlos.
+* **✅ Lo que he logrado:**
+  - Conexión exitosa a **Claude Sonnet 4.6** a través de **AWS Bedrock** y **LangChain**.
+  - Creación de un script (`listar_modelos.py`) para explorar el catálogo de IA disponible en tiempo real en AWS.
+  - *Prompt Engineering* avanzado para obligar a la IA a ser objetiva y no inventar habilidades.
+  - Guardado automatizado del análisis en formato `.md` (`informe_profesional.md`) para facilitar su lectura.
+
+---
+
+### 🚀 Siguiente paso -> Fase 3: Interfaz Gráfica (Streamlit)
+*Próximamente: Vamos a envolver toda esta magia del backend en una aplicación web interactiva con chat en vivo para poder guiar a la IA en tiempo real.*
