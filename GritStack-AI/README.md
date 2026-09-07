@@ -133,5 +133,34 @@ Construir una plataforma de Inteligencia Artificial desde cero no es tarea fáci
 
 ---
 
-### 🚀 Siguiente paso -> Fase 3: Interfaz Gráfica (Streamlit)
-*Próximamente: Vamos a envolver toda esta magia del backend en una aplicación web interactiva con chat en vivo para poder guiar a la IA en tiempo real.*
+### 🚀 Fase 3: Interfaz Gráfica & Dashboard Glassmorphism (Streamlit)
+* **🎯 Objetivo:** Envolver el motor analítico en una aplicación web interactiva de alto impacto estético, moderna y responsiva.
+* **🚧 Retos / Inconvenientes:** Streamlit por defecto aplica estilos estándar y colores planos. Fue necesario inyectar CSS puro con `glassmorphism`, tipografía sans-serif geométrica moderna (Google Fonts *Outfit* y *Plus Jakarta Sans*) y controlar los anchos y eventos de pestañas para evitar desbordamientos y enlaces rotos.
+* **✅ Lo que he logrado:**
+  - Sistema de diseño completo en Dark Mode (`#0b0f19`) con tarjetas translúcidas, efectos de desenfoque y acentos neón (#a855f7 y #38bdf8).
+  - Flujo completo de Onboarding con validación de credenciales y pantalla de carga animada.
+  - Dashboard central con navegación por pestañas de ancho completo, vitrina de repositorios insignia con enlaces directos a GitHub y banner Hero con avatar.
+  - Chat interactivo con IA actuando como Principal Cloud & DevOps Architect con pensamiento crítico y trade-offs reales de ingeniería.
+
+---
+
+### 📝 Fase 4: README Studio & Optimizador Profesional de Perfil
+* **🎯 Objetivo:** Generar un `README.md` de élite para GitHub que destaque la especialización en Cloud & DevOps (AWS Serverless con Terraform, Docker Labs y Linux Automation).
+* **🚧 Retos / Inconvenientes:** Los modelos de IA suelen caer en clichés vacíos ("apasionado por la tecnología") y generar badges con servidores externos caídos. Se implementó un prompt estricto con pensamiento crítico y sanitización regex de encabezados para vincular números y proyectos en una sola línea.
+* **✅ Lo que he logrado:**
+  - Integración de Claude Sonnet 4.6 en AWS Bedrock para generación de READMEs arquitectónicos de alta fidelidad.
+  - Interfaz estilo terminal con selector dual: vista previa formateada y vista de código fuente Markdown.
+  - Badges fiables con `shields.io` y métricas de ingeniería de GitHub.
+
+---
+
+### 🎯 Fase 5: Adaptador Curricular Inteligente (TailorCV Studio & ATS Matcher)
+* **🎯 Objetivo:** Auditar currículums reales frente a ofertas de empleo, identificar fallos de filtrado ATS y generar una versión optimizada ejecutable en PDF y Markdown.
+* **🚧 Retos / Inconvenientes:** Los parsers ATS descartan CVs sin palabras clave normalizadas ni impacto cuantificable. Además, se resolvió la integración con `fpdf2` para generar PDFs ejecutivos en memoria y un parser XML resiliente que previene la pérdida de bloques Markdown generados por la IA.
+* **✅ Lo que he logrado:**
+  - Extractor de texto desde currículums en formato PDF usando `PyPDF2`.
+  - Auditoría crítica con puntuación roja (25-42%) detallando los 5 errores técnicos que provocan el descarte.
+  - Puntuación optimizada en verde (93-98%) con transformaciones y reescritura de viñetas bajo la **Fórmula Google X-Y-Z**.
+  - Generador de PDF ejecutivo de alta resolución con tipografía TrueType y enlaces de contacto usando `fpdf2`.
+  - Descarga dual del currículum en `.pdf` y `.md` con barra de progreso lineal sincronizada al 100%.
+
