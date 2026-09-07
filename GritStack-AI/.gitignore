@@ -17,5 +17,7 @@ env/
 .idea/
 .DS_Store
 
-# Datos generados por la aplicación
+# Datos generados por la aplicación y pruebas
 perfil_*.json
+scratch/
+test_*.py

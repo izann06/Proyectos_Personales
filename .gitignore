@@ -39,3 +39,8 @@ immich-setup/.env
 # Base de datos de Immich (no subir binarios gigantes)
 immich-postgres-data/
 immich-setup/immich-postgres-data/
+
+# Archivos temporales de pruebas
+scratch/
+test_*.py
+
