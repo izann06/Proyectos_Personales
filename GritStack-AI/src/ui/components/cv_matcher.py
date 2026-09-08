@@ -6,6 +6,7 @@ auditoría crítica en ROJO y versión optimizada en VERDE.
 """
 
 import time
+import math
 import threading
 import textwrap
 import streamlit as st
@@ -44,10 +45,10 @@ def render_cv_matcher(datos_perfil: dict):
 🎯 TailorCV Studio • Auditoría & Optimizador Curricular Inteligente
 </h3>
 <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: #94a3b8;">
-Audita los fallos de tu currículum original y genera una versión optimizada para roles de Cloud & DevOps.
+Audita los fallos de tu currículum frente a cualquier vacante técnica y genera una versión de élite adaptada rigurosamente al puesto.
 </p>
 </div>
-<span class="badge-devops">ATS Engine V2.5</span>
+<span class="badge-devops">ATS Adaptive Engine V3.0</span>
 </div>
 </div>"""
     st.markdown(textwrap.dedent(header_html).strip(), unsafe_allow_html=True)
@@ -63,17 +64,18 @@ Audita los fallos de tu currículum original y genera una versión optimizada pa
     c_puesto, c_oferta = st.columns([1, 1.2], gap="medium")
     with c_puesto:
         puesto_deseado = st.text_input(
-            "Puesto de Trabajo Deseado",
-            value="Cloud & DevOps Engineer / Junior SRE",
-            placeholder="Ej: Cloud & DevOps Engineer, SRE...",
-            help="El título exacto del puesto al que te postulas."
+            "Puesto de Trabajo Objetivo",
+            value=st.session_state.get("puesto_objetivo_actual", "Cloud & DevOps Engineer / Junior SRE"),
+            placeholder="Ej: Frontend Developer, Backend .NET, Cloud & DevOps, Data Engineer...",
+            help="El título exacto del puesto al que te postulas (la IA adaptará las tecnologías y proyectos a este rol)."
         )
     with c_oferta:
         descripcion_oferta = st.text_area(
             "Requisitos clave de la Oferta (Opcional)",
-            value="Experiencia en Docker, AWS (Serverless/Lambda), Terraform (IaC), CI/CD con GitHub Actions y entornos Linux.",
+            value=st.session_state.get("desc_oferta_actual", "Experiencia en Docker, AWS (Serverless/Lambda), Terraform (IaC), CI/CD con GitHub Actions y entornos Linux."),
             height=68,
-            help="Pega aquí fragmentos de la oferta para evaluar palabras clave específicas."
+            placeholder="Pega aquí fragmentos o requisitos de la oferta...",
+            help="Pega aquí fragmentos de la oferta para alinear palabras clave y requisitos específicos."
         )
 
     archivo_cv = st.file_uploader(
@@ -128,57 +130,67 @@ Audita los fallos de tu currículum original y genera una versión optimizada pa
         hilo = threading.Thread(target=tarea_analisis)
         hilo.start()
 
-        progreso_lineal = 5.0
+        t_inicio = time.time()
+        progreso_actual = 2.0
 
-        # Barra de progreso lineal sincronizada en tiempo real
-        while not estado_worker["terminado"] or progreso_lineal < 100.0:
-            if estado_worker["terminado"] and estado_worker["error"]:
-                break
+        # Barra de progreso asintótica continua y distribuida con precisión temporal
+        while not estado_worker["terminado"]:
+            t_transcurrido = time.time() - t_inicio
 
-            if not estado_worker["terminado"]:
-                if progreso_lineal < 30.0:
-                    progreso_lineal += 1.2
-                    msg = "📄 Extrayendo texto y analizando estructura del currículum..."
-                elif progreso_lineal < 60.0:
-                    progreso_lineal += 0.9
-                    msg = "🔍 Escaneando palabras clave ATS para Cloud & DevOps..."
-                elif progreso_lineal < 85.0:
-                    progreso_lineal += 0.7
-                    msg = "❌ Auditando deficiencias, falta de métricas y riesgos de filtrado..."
-                else:
-                    # Avanza suavemente mientras la IA responde sin superar el 95%
-                    progreso_lineal = min(95.0, progreso_lineal + 0.15)
-                    msg = "✨ Reestructurando experiencia técnica con fórmula Google X-Y-Z..."
+            # Curva asintótica continua sin techos artificiales rígidos
+            # En t=5s ~20%, t=15s ~49%, t=30s ~73%, t=45s ~86%, t=60s ~92%, t=80s ~95%
+            meta_progreso = 96.5 * (1.0 - math.exp(-t_transcurrido / 24.0))
+
+            if meta_progreso > progreso_actual:
+                progreso_actual += (meta_progreso - progreso_actual) * 0.25
             else:
-                # El análisis concluyó: completar rápidamente al 100% exacto
-                progreso_lineal = min(100.0, progreso_lineal + 6.0)
-                msg = "🚀 ¡Auditoría completada y CV optimizado listo!"
+                progreso_actual = min(96.5, progreso_actual + 0.05)
+
+            # Mensajes técnicos en rotación activa según la fase temporal real
+            if t_transcurrido < 4.0:
+                msg = "📄 Extrayendo texto y procesando estructura del currículum..."
+            elif t_transcurrido < 10.0:
+                msg = f"🔍 Evaluando requisitos y palabras clave ATS para {puesto_deseado[:28]}..."
+            elif t_transcurrido < 18.0:
+                msg = "❌ Auditando deficiencias, anti-patrones y riesgos de descarte..."
+            elif t_transcurrido < 28.0:
+                msg = "⚡ Cruzando competencias clave con proyectos reales de GitHub..."
+            elif t_transcurrido < 40.0:
+                msg = "✨ Reestructurando experiencia técnica con fórmula Google X-Y-Z..."
+            elif t_transcurrido < 54.0:
+                msg = "🎯 Maximizando densidad semántica para directores técnicos y ATS..."
+            else:
+                msg = "🚀 Finalizando redacción ejecutiva y ensamblando el currículum..."
 
             html_bar = render_html_progress(
-                progreso=min(100.0, progreso_lineal),
+                progreso=progreso_actual,
                 mensaje=msg,
                 titulo="AUDITORÍA ATS EN TIEMPO REAL"
             )
             placeholder_progreso.markdown(html_bar, unsafe_allow_html=True)
-            time.sleep(0.06)
+            time.sleep(0.08)
 
         if estado_worker["error"]:
             placeholder_progreso.empty()
             st.error(f"❌ Error al auditar el CV: {estado_worker['error']}")
             return
 
-        # Mostrar el 100% durante 0.3 segundos para confirmación visual perfecta
-        placeholder_progreso.markdown(
-            render_html_progress(
-                progreso=100.0,
+        # Animación de cierre suave y satisfactoria hasta el 100% exacto
+        while progreso_actual < 100.0:
+            progreso_actual = min(100.0, progreso_actual + 3.5)
+            html_bar = render_html_progress(
+                progreso=progreso_actual,
                 mensaje="🚀 ¡100% Completado! Desplegando informe de auditoría...",
                 titulo="AUDITORÍA ATS EN TIEMPO REAL"
-            ),
-            unsafe_allow_html=True
-        )
-        time.sleep(0.3)
+            )
+            placeholder_progreso.markdown(html_bar, unsafe_allow_html=True)
+            time.sleep(0.03)
+
+        time.sleep(0.35)
         placeholder_progreso.empty()
         st.session_state["resultado_cv"] = estado_worker["resultado"]
+        st.session_state["puesto_objetivo_actual"] = puesto_deseado
+        st.session_state["desc_oferta_actual"] = descripcion_oferta
         st.rerun()
 
     # ============================================================
@@ -291,6 +303,10 @@ Transformaciones Clave Aplicadas:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
         
         # Barra de herramientas y descargas del CV
+        import re
+        puesto_actual = st.session_state.get("puesto_objetivo_actual", "Ingeniero")
+        rol_slug = re.sub(r'[^a-zA-Z0-9]+', '_', puesto_actual).strip('_')[:25] or "Profesional"
+        
         col_cv_ctrl, col_cv_pdf, col_cv_md = st.columns([1.8, 1.4, 1.4], gap="medium")
         with col_cv_ctrl:
             vista_cv = st.radio(
@@ -304,7 +320,7 @@ Transformaciones Clave Aplicadas:
             st.download_button(
                 label="📄 Descargar CV en PDF (.pdf)",
                 data=pdf_bytes,
-                file_name=f"Curriculum_{nombre.replace(' ', '_')}_DevOps.pdf",
+                file_name=f"Curriculum_{nombre.replace(' ', '_')}_{rol_slug}.pdf",
                 mime="application/pdf",
                 use_container_width=True
             )
@@ -312,20 +328,20 @@ Transformaciones Clave Aplicadas:
             st.download_button(
                 label="📥 Descargar CV (.md)",
                 data=cv_md,
-                file_name=f"Curriculum_{nombre.replace(' ', '_')}_DevOps.md",
+                file_name=f"Curriculum_{nombre.replace(' ', '_')}_{rol_slug}.md",
                 mime="text/markdown",
                 use_container_width=True
             )
 
         # Encabezado visual de la terminal
-        cv_header_html = """<div class="terminal-header" style="border-top-left-radius: 16px; border-top-right-radius: 16px; margin-top: 14px;">
+        cv_header_html = f"""<div class="terminal-header" style="border-top-left-radius: 16px; border-top-right-radius: 16px; margin-top: 14px;">
 <div class="terminal-dots">
 <span class="dot-red"></span>
 <span class="dot-yellow"></span>
 <span class="dot-green"></span>
 </div>
 <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; color: #94a3b8;">
-Curriculum_Vitae_Cloud_DevOps.md • Listo para Postulaciones
+Curriculum_{rol_slug}.md • Adaptado rigurosamente para {puesto_actual}
 </div>
 <div>
 <span class="badge-status">100% Optimizado</span>

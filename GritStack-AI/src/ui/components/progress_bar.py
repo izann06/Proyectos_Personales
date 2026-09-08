@@ -18,17 +18,29 @@ def render_html_progress(progreso: float, mensaje: str, titulo: str = "PROGRESO 
     # Posición geométrica del Octocat (2.5% a 97.5% para centrarlo exactamente en los bordes)
     posicion_icono = 2.5 + (progreso_clamped / 100.0) * 95.0
     
-    html = f"""<div class="glass-card" style="max-width: 680px; margin: 0 auto; padding: 24px;">
+    html = f"""<div class="glass-card" style="max-width: 680px; margin: 0 auto; padding: 24px; position: relative; overflow: hidden;">
+<style>
+@keyframes pulseDot {{
+    0% {{ transform: scale(0.85); opacity: 0.5; box-shadow: 0 0 4px #38bdf8; }}
+    50% {{ transform: scale(1.25); opacity: 1; box-shadow: 0 0 14px #38bdf8, 0 0 22px rgba(56,189,248,0.7); }}
+    100% {{ transform: scale(0.85); opacity: 0.5; box-shadow: 0 0 4px #38bdf8; }}
+}}
+@keyframes runnerShine {{
+    0% {{ box-shadow: 0 0 12px rgba(56, 189, 248, 0.6); }}
+    50% {{ box-shadow: 0 0 24px rgba(168, 85, 247, 0.9), 0 0 35px rgba(56, 189, 248, 0.7); }}
+    100% {{ box-shadow: 0 0 12px rgba(56, 189, 248, 0.6); }}
+}}
+</style>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
 <span style="font-size: 0.82rem; font-weight: 700; color: #a855f7; text-transform: uppercase; letter-spacing: 0.05em;">{titulo}</span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 800; color: #38bdf8;">{pct_int}%</span>
 </div>
 <div class="grit-progress-track">
 <div class="grit-progress-fill" style="width: {progreso_clamped:.1f}%;"></div>
-<div class="grit-github-runner" style="left: {posicion_icono:.1f}%;">{GITHUB_OCTOCAT_SVG}</div>
+<div class="grit-github-runner" style="left: {posicion_icono:.1f}%; animation: runnerShine 2s ease-in-out infinite;">{GITHUB_OCTOCAT_SVG}</div>
 </div>
 <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px;">
-<div style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 10px #38bdf8;"></div>
+<div style="width: 9px; height: 9px; border-radius: 50%; background: #38bdf8; animation: pulseDot 1.4s ease-in-out infinite;"></div>
 <div style="font-size: 0.92rem; color: #f1f5f9; font-weight: 600;">{mensaje}</div>
 </div>
 </div>"""

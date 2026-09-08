@@ -3,6 +3,7 @@ Pantalla de Carga Interactiva con Barra de Progreso y Marcador de GitHub Móvil
 """
 
 import time
+import math
 import threading
 import streamlit as st
 from src.data.github_parser import obtener_perfil_github
@@ -61,45 +62,67 @@ Conectando con GitHub API y el motor de IA de AWS Bedrock para decodificar tu pe
     hilo = threading.Thread(target=tarea_segundo_plano)
     hilo.start()
 
-    progreso_visual = 5.0
+    t_inicio = time.time()
+    t_inicio_bedrock = None
+    progreso_visual = 2.0
     
-    # Animación fluida con distribución uniforme del tiempo y tope estricto en 100%
-    while not estado_worker["terminado"] or progreso_visual < 100.0:
-        if estado_worker["terminado"] and estado_worker["error"]:
-            break
-
+    # Progresión asintótica temporal continua sin atascos en 48% ni en 95%
+    while not estado_worker["terminado"]:
         fase_actual = estado_worker["fase"]
+        t_total = time.time() - t_inicio
         
-        if not estado_worker["terminado"]:
-            if fase_actual == "github":
-                if progreso_visual < 45.0:
-                    progreso_visual = min(45.0, progreso_visual + 1.2)
-                else:
-                    progreso_visual = min(48.0, progreso_visual + 0.1)
-                mensaje = "📡 Conectando con GitHub API e indexando repositorios y tecnologías..."
-            elif fase_actual == "bedrock":
-                if progreso_visual < 85.0:
-                    progreso_visual = min(85.0, progreso_visual + 1.0)
-                else:
-                    # Durante la inferencia con Claude en Bedrock, avanza sutilmente sin pasar jamás del 95%
-                    progreso_visual = min(95.0, progreso_visual + 0.15)
-                mensaje = "🧠 Analizando arquitectura y sintetizando README con Claude Sonnet 4.6..."
+        if fase_actual == "github":
+            # Progresión suave durante fase GitHub (0% hacia ~45% sin atascarse)
+            meta_progreso = 45.0 * (1.0 - math.exp(-t_total / 8.0))
+            if meta_progreso > progreso_visual:
+                progreso_visual += (meta_progreso - progreso_visual) * 0.25
             else:
-                progreso_visual = min(96.0, progreso_visual + 0.2)
-                mensaje = "✨ Optimizando métricas y organizando proyectos insignia..."
+                progreso_visual = min(46.0, progreso_visual + 0.04)
+                
+            if t_total < 3.5:
+                mensaje = "📡 Conectando con GitHub API y autenticando credenciales..."
+            elif t_total < 8.0:
+                mensaje = "📦 Indexando repositorios, historial de commits y tecnologías..."
+            else:
+                mensaje = "📊 Calculando métricas de ingeniería y distribución de lenguajes..."
+                
+        elif fase_actual == "bedrock":
+            if t_inicio_bedrock is None:
+                t_inicio_bedrock = time.time()
+                base_bedrock = max(45.0, progreso_visual)
+            else:
+                base_bedrock = 45.0
+                
+            t_bedrock = time.time() - t_inicio_bedrock
+            # Progresión suave durante fase Bedrock (45% hacia ~96.5% sin frenazos)
+            meta_progreso = base_bedrock + (96.5 - base_bedrock) * (1.0 - math.exp(-t_bedrock / 14.0))
+            
+            if meta_progreso > progreso_visual:
+                progreso_visual += (meta_progreso - progreso_visual) * 0.25
+            else:
+                progreso_visual = min(96.5, progreso_visual + 0.04)
+                
+            if t_bedrock < 4.0:
+                mensaje = "🧠 Conectando con Claude Sonnet 4.6 en AWS Bedrock..."
+            elif t_bedrock < 10.0:
+                mensaje = "⚡ Analizando decisiones de diseño y arquitecturas insignia..."
+            elif t_bedrock < 18.0:
+                mensaje = "📐 Sintetizando topologías Zero-Trust y diagramas de flujo..."
+            elif t_bedrock < 28.0:
+                mensaje = "✨ Redactando README técnico con pensamiento crítico..."
+            else:
+                mensaje = "🚀 Optimizando insignias de producción y estructura ejecutiva..."
         else:
-            # Al terminar el worker, completar suavemente hasta el 100% exacto
-            progreso_visual = min(100.0, progreso_visual + 5.0)
-            mensaje = "🚀 ¡Todo listo! Desplegando tu Centro de Mando..."
+            progreso_visual = min(96.5, progreso_visual + 0.2)
+            mensaje = "✨ Ensamblando métricas de ingeniería y proyectos..."
 
-        # Renderizar la barra usando la función con límite estricto de 100%
         html_barra = render_html_progress(
-            progreso=min(100.0, progreso_visual),
+            progreso=progreso_visual,
             mensaje=mensaje,
             titulo="PROGRESO DE INTELIGENCIA DEVOPS"
         )
         placeholder.markdown(html_barra, unsafe_allow_html=True)
-        time.sleep(0.06)
+        time.sleep(0.08)
 
     if estado_worker["error"]:
         placeholder.empty()
@@ -109,18 +132,20 @@ Conectando con GitHub API y el motor de IA de AWS Bedrock para decodificar tu pe
             st.rerun()
         return
 
-    # Mostrar el 100% completo durante un instante para una experiencia visual perfecta
-    placeholder.markdown(
-        render_html_progress(
-            progreso=100.0,
+    # Animación de cierre suave hasta el 100% exacto
+    while progreso_visual < 100.0:
+        progreso_visual = min(100.0, progreso_visual + 3.5)
+        html_barra = render_html_progress(
+            progreso=progreso_visual,
             mensaje="🚀 ¡100% Completado! Abriendo tu Centro de Mando...",
             titulo="PROGRESO DE INTELIGENCIA DEVOPS"
-        ),
-        unsafe_allow_html=True
-    )
-    time.sleep(0.4)
+        )
+        placeholder.markdown(html_barra, unsafe_allow_html=True)
+        time.sleep(0.03)
 
+    time.sleep(0.35)
     st.session_state["datos_perfil"] = estado_worker["datos_perfil"]
     st.session_state["readme_generado"] = estado_worker["readme"]
     st.session_state["etapa"] = "dashboard"
+    st.rerun()
     st.rerun()
