@@ -14,7 +14,7 @@ def crear_modelo_ia():
     
     config_bedrock = Config(
         connect_timeout=6,
-        read_timeout=60,
+        read_timeout=90,
         retries={'max_attempts': 2}
     )
     
@@ -162,31 +162,60 @@ Ingeniería de sistemas, automatización de tareas y pipelines de entrega contin
 
 def responder_chat_ia(pregunta: str, datos_perfil: dict, historial: list = None) -> str:
     """
-    Responde consultas actuando como Principal Cloud & DevOps Architect y Mentor Técnico de élite,
-    aportando pensamiento crítico, análisis de trade-offs y recomendaciones de ingeniería avanzadas.
+    Responde consultas actuando como Principal Technical Architect y Staff Mentor multidisciplinar,
+    con memoria conversacional completa, análisis de trade-offs y recomendaciones rigurosas.
     """
     try:
         modelo = crear_modelo_ia()
         usuario = datos_perfil.get("usuario", "desarrollador")
         nombre = datos_perfil.get("nombre", usuario)
         
-        prompt = f"""Eres un Principal Cloud & DevOps Architect y Staff Engineer Mentor de élite en GritStack AI.
-Estás asesorando técnicamente a {nombre} (@{usuario}).
+        # Extraer repositorio y lenguajes reales del candidato
+        repos = datos_perfil.get("repositorios", [])
+        resumen_repos = []
+        for r in repos[:12]:
+            nom = r.get("nombre", "")
+            desc = r.get("descripcion", "") or "Proyecto de desarrollo e ingeniería"
+            langs = list(r.get("lenguajes_bytes", {}).keys())[:4]
+            langs_str = ", ".join(langs) if langs else "General"
+            resumen_repos.append(f"- '{nom}' ({langs_str}): {desc}")
+        contexto_repos = "\n".join(resumen_repos) if resumen_repos else "- Repositorios en AWS, Docker, Linux, C#, Python y TypeScript."
 
-CONOCIMIENTO DEL PERFIL TÉCNICO DE {nombre}:
-- Especialidad: **CLOUD COMPUTING, DEVOPS, INFRAESTRUCTURA COMO CÓDIGO (IaC) Y SISTEMAS DISTRIBUIDOS**.
-- Proyectos insignia reales:
-  1. 'aws-serverless-text-to-speech': S3 Event Notifications -> AWS Lambda -> Amazon Polly. Infraestructura provisionada con Terraform HCL, políticas IAM Least Privilege.
-  2. 'Docker-Labs': Redes privadas Zero-Trust en Docker Compose, Named Volumes, microservicios FastAPI, PostgreSQL y Redis sin exposición de puertos al host.
-  3. 'DevOps-Proyectos-RoadMap': Automatización Linux en Bash (/proc, métricas), Nginx hardening y CI/CD con GitHub Actions.
+        top_langs = [l.get("nombre") for l in datos_perfil.get("estadisticas", {}).get("lenguajes_top", [])[:6]]
+        langs_globales = ", ".join(top_langs) if top_langs else "C#, TypeScript, Python, Java, Bash"
 
-REGLAS DE RESPUESTA (PENSAMIENTO CRÍTICO & PROFUNDIDAD TÉCNICA):
-1. CERO CLICHÉS: Evita respuestas genéricas o de autoayuda técnica.
-2. TRADE-OFFS REALES: Cuando recomiendes una herramienta o patrón, explica pros, contras y trade-offs arquitectónicos (ej. Serverless vs Contenedores; Terraform vs OpenTofu; Docker Compose en desarrollo vs Kubernetes con Helm en producción; S3+DynamoDB state locking vs Terraform Cloud).
-3. CRITERIO SENIOR: Si te pregunta qué estudiar o cómo mejorar, dale una hoja de ruta con prioridades de ingeniería sólidas: Observabilidad (Prometheus, Grafana, OpenTelemetry), Kubernetes HA (Pods, Deployments, Ingress, Cert-Manager), Gestión de Secretos (AWS Secrets Manager / Vault) y Seguridad DevSecOps (Trivy, SonarQube).
-4. SÉ DIRECTO Y RIGUROSO.
+        # Construir memoria del diálogo a partir del historial previo
+        contexto_dialogo = ""
+        if historial and len(historial) > 1:
+            turnos_previos = []
+            for h in historial[-9:-1]:
+                rol_label = "Desarrollador" if h.get("rol") == "user" else "Mentor IA"
+                turnos_previos.append(f"{rol_label}: {h.get('mensaje', '')}")
+            if turnos_previos:
+                contexto_dialogo = "\n\nHISTORIAL CONVERSACIONAL PREVIO (Mantén la coherencia con lo hablado):\n" + "\n".join(turnos_previos)
 
-Pregunta del ingeniero {nombre}:
+        prompt = f"""Eres un Principal Technical Architect y Staff Engineer Mentor de élite en GritStack AI.
+Estás asesorando técnicamente en tiempo real a {nombre} (@{usuario}).
+
+PERFIL TÉCNICO Y BACKGROUND DEL INGENIERO:
+- Nombre: {nombre} (@{usuario})
+- Lenguajes dominantes en su portfolio: {langs_globales}
+- Repositorios reales de su portfolio:
+{contexto_repos}
+
+DIRECTRICES DE MENTORÍA Y PENSAMIENTO CRÍTICO:
+1. PENSAMIENTO CRÍTICO & CRITERIO SENIOR: Prohibidas respuestas genéricas o de manual introductorio. Analiza trade-offs arquitectónicos reales, pros, contras, escalabilidad, mantenibilidad, costes e implicaciones en entornos de producción.
+2. ADAPTABILIDAD MULTIDISCIPLINAR RIGUROSA:
+   - Si la consulta es de Cloud / DevOps / SRE: Aborda Terraform, AWS, Docker, Kubernetes, CI/CD, Zero-Trust, observabilidad y resiliencia.
+   - Si la consulta es de Backend (.NET, C#, Python, Java, APIs): Aborda patrones arquitectónicos (Clean Architecture, CQRS, Domain-Driven Design, microservicios, optimización de queries SQL/ORM, concurrencia y REST/gRPC).
+   - Si la consulta es de Frontend (React, Next.js, TypeScript): Aborda rendering patterns (SSR/SSG/ISR), gestión de estado, diseño de componentes accesibles y optimización de Core Web Vitals.
+   - Si la consulta es de Estrategia de Carrera o Entrevistas: Brinda consejos estratégicos y tácticos concretos para defender proyectos, responder preguntas de diseño de sistemas y destacar ante directores de ingeniería.
+3. ESTILO DE COMUNICACIÓN:
+   - Responde con tono profesional, empático pero técnicamente incisivo y exigente.
+   - Utiliza formato Markdown con títulos limpios, viñetas analíticas, negritas para conceptos esenciales y bloques de código sintáctico cuando aporte valor.
+{contexto_dialogo}
+
+NUEVA CONSULTA DE {nombre}:
 "{pregunta}"
 """
         respuesta = modelo.invoke(prompt)
@@ -197,10 +226,12 @@ Pregunta del ingeniero {nombre}:
     except Exception as e:
         print(f"[Fallback Chat] {e}")
         p_lower = pregunta.lower()
-        if "fortaleza" in p_lower or "fuerte" in p_lower:
-            return "Tus 3 mayores fortalezas técnicas analizadas desde un punto de vista de arquitectura son:\n\n1. **Infraestructura como Código (IaC) Declarativa en AWS**: Has diseñado una arquitectura reactiva serverless (S3 -> Lambda -> Polly) orquestada íntegramente con Terraform, aplicando el principio de menor privilegio en IAM y garantizando coste 0€.\n2. **Seguridad y Topología en Contenedores**: En tu repositorio 'Docker-Labs' implementas aislamiento de red Zero-Trust en Compose (bases de datos no expuestas al host) y persistencia resiliente mediante Named Volumes.\n3. **Ingeniería de Sistemas y Automatización Base**: Dominio de scripting en Bash sobre entornos Linux (/proc, monitorización de I/O y memoria) y pipelines CI/CD automatizados en GitHub Actions."
-        elif "entrevista" in p_lower or "proyecto" in p_lower:
-            return "En entrevistas técnicas para puestos Cloud/DevOps, tu proyecto de referencia debe ser **`aws-serverless-text-to-speech`**:\n- **El problema:** Síntesis de voz escalable sin incurrir en costes de infraestructura ociosa.\n- **La arquitectura:** Event-driven architecture con triggers S3 hacia Lambda en Python.\n- **El trade-off:** Optaste por Terraform para el control estricto del estado (`tfstate`) y reproducibilidad en lugar de configuraciones ad-hoc en la consola web de AWS.\n- **Seguridad:** Políticas IAM estrictamente acotadas a `polly:SynthesizeSpeech`."
+        if "cv" in p_lower or "curriculum" in p_lower:
+            return f"Para hacer que tu currículum destaque ante cualquier reclutador técnico, aplica la **Fórmula Google X-Y-Z** en cada experiencia: *'Logré [X], medido por [Y], implementando [Z]'*. No listes tareas pasivas; cuantifica el impacto técnico (latencia, costes, automatización de despliegues o cobertura de pruebas) y alinea las palabras clave con el puesto que buscas."
+        elif "entrevista" in p_lower or "defender" in p_lower:
+            return f"En entrevistas técnicas, la clave es dominar el **Método STAR** enfocado en arquitectura: describe la situación, el reto técnico, la decisión de ingeniería adoptada explicando los **trade-offs** (por qué elegiste esa tecnología sobre las alternativas) y el impacto final en el proyecto."
+        elif "aprender" in p_lower or "ruta" in p_lower:
+            return f"Tu siguiente salto de ingeniería depende del rol que desees consolidar:\n\n1. **Para Cloud & DevOps:** Da el paso de Docker Compose a **Kubernetes (K8s)** con Helm, implementa **Observabilidad** (Prometheus, Grafana) y seguridad en CI/CD (**Trivy, SonarQube**).\n2. **Para Backend:** Profundiza en **Clean Architecture**, diseño de sistemas distribuidos, mensajería asíncrona (RabbitMQ/Kafka) y optimización de bases de datos.\n3. **Para Fullstack:** Conecta tus APIs con interfaces modernas en **TypeScript y React/Next.js** optimizando renderizado y experiencia de usuario."
         else:
-            return "Para dar el salto a un perfil Senior tras consolidar Terraform y Docker Compose, la ruta crítica de ingeniería debe ser:\n\n1. **Orquestación en Producción (Kubernetes - K8s)**: Arquitectura de control plane/workers, Deployments, Services, Ingress Controllers y empaquetado con **Helm**.\n2. **Observabilidad Distribuida**: Métricas con **Prometheus**, dashboards en **Grafana** y trazas con **OpenTelemetry**.\n3. **DevSecOps**: Escaneo de vulnerabilidades en imágenes de contenedores con **Trivy** y análisis estático de código IaC con **tfsec** o **Checkov**."
+            return f"He analizado tu consulta. Para abordar este reto con mentalidad de ingeniero senior, debemos evaluar los trade-offs técnicos clave: arquitectura desacoplada, mantenibilidad a largo plazo y automatización de pruebas continuas. Cuéntame más detalles sobre el caso de uso específico para profundizar en la mejor solución técnica."
 
