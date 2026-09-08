@@ -27,9 +27,9 @@ def render_dashboard(datos_perfil: dict, readme_md: str):
 
     # 3. Navegación en 3 Pestañas Principales (Full-Width y Tipografía Moderna)
     tab_perfil, tab_chat, tab_cv = st.tabs([
-        "Perfil, Proyectos & README",
-        "Mentor IA (DevOps & Cloud)",
-        "Adaptador de CV (ATS Tailor)"
+        "🚀 Perfil & README Studio",
+        "💬 Mentor IA (Staff Architect)",
+        "🎯 TailorCV Studio (ATS Matcher)"
     ])
 
 

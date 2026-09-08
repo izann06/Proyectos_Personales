@@ -4,6 +4,18 @@ Punto de Entrada Principal (Streamlit App)
 """
 
 import streamlit as st
+import importlib
+import src.ui.styles as styles_module
+import src.ui.onboarding as onboarding_module
+import src.ui.pantalla_carga as pantalla_carga_module
+import src.ui.dashboard as dashboard_module
+
+# Hot-reload de módulos de interfaz para reflejar cambios de estilos y componentes al instante
+importlib.reload(styles_module)
+importlib.reload(onboarding_module)
+importlib.reload(pantalla_carga_module)
+importlib.reload(dashboard_module)
+
 from src.ui.styles import aplicar_estilos
 from src.ui.onboarding import render_onboarding
 from src.ui.pantalla_carga import render_pantalla_carga
