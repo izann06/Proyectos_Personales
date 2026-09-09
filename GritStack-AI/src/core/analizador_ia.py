@@ -97,14 +97,14 @@ DATOS REALES DEL PERFIL:
     except Exception as e:
         print(f"[Fallback README] {e}")
         # Fallback de alta fidelidad arquitectónica para Izan
-        return f"""# {nombre} (@{usuario}) 👋
+        return f"""# {nombre} (@{usuario})
 
-> 🚀 **Cloud & DevOps Engineer** | AWS · Terraform (IaC) · Docker · CI/CD · Linux Systems
+> **Cloud & DevOps Engineer** | AWS · Terraform (IaC) · Docker · CI/CD · Linux Systems
 > *Especializado en arquitecturas reactivas serverless, orquestación de contenedores y automatización de infraestructura como código bajo el principio de menor privilegio.*
 
 ---
 
-### ☁️ Stack Tecnológico & Especialización
+### Stack Tecnológico & Especialización
 
 <div align="left">
   <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS" />
@@ -120,22 +120,22 @@ DATOS REALES DEL PERFIL:
 
 ---
 
-### 🏛️ Arquitectura & Proyectos Destacados
+### Arquitectura & Proyectos Destacados
 
-#### 1. [🎙️ AWS Serverless Text-to-Speech (IaC con Terraform)](https://github.com/{usuario}/aws-serverless-text-to-speech)
+#### 1. [AWS Serverless Text-to-Speech (IaC con Terraform)](https://github.com/{usuario}/aws-serverless-text-to-speech)
 Arquitectura reactiva en **AWS** orquestada al 100% mediante **Terraform (IaC)**:
 - **Flujo de Eventos:** `S3 Bucket (Input) ──> S3 Event Trigger ──> AWS Lambda (Python) ──> Amazon Polly (TTS) ──> S3 (Output Audio)`
 - **Diseño de Seguridad:** Políticas IAM con el Principio de Menor Privilegio (Least Privilege), restringiendo el scope de Lambda a `polly:SynthesizeSpeech` y lectura/escritura en prefijos específicos de S3.
 - **Reproducibilidad:** Control de estado declarativo sin intervención manual en la consola web, manteniendo un coste operativo de **0.00€** bajo la capa gratuita.
 *Tech Stack: `AWS Lambda` · `Terraform HCL` · `Amazon Polly` · `Amazon S3` · `IAM Least Privilege` · `Python`*
 
-#### 2. [🐳 Docker Labs & Homelab Infrastructure](https://github.com/{usuario}/Docker-Labs)
+#### 2. [Docker Labs & Homelab Infrastructure](https://github.com/{usuario}/Docker-Labs)
 Entorno de pruebas y orquestación multicontenedor con **Docker Compose**:
 - **Topología Zero-Trust:** Redes privadas tipo puente (bridge networks) con aislamiento estricto. Las bases de datos (`PostgreSQL`, `Redis`) no exponen puertos al host y solo se comunican a través de DNS interno con las APIs (`FastAPI`, `Node.js`).
 - **Resiliencia & Persistencia:** Named Volumes desacoplados del ciclo de vida del contenedor y healthchecks (`depends_on: condition: service_healthy`) para garantizar disponibilidad de dependencias.
 *Tech Stack: `Docker` · `Docker Compose` · `FastAPI` · `PostgreSQL` · `Redis` · `Portainer`*
 
-#### 3. [⚙️ DevOps Proyectos & Linux Systems Automation](https://github.com/{usuario}/DevOps-Proyectos-RoadMap)
+#### 3. [DevOps Proyectos & Linux Systems Automation](https://github.com/{usuario}/DevOps-Proyectos-RoadMap)
 Ingeniería de sistemas, automatización de tareas y pipelines de entrega continua:
 - **Diagnóstico de Sistemas:** Scripts modulares en Bash para inspección proactiva de recursos en servidores Linux (`/proc`, saturación de memoria, métricas de disco e interfaces de red).
 - **CI/CD & Hardening:** Workflows automatizados con GitHub Actions para linting de código, gestión de llaves criptográficas SSH y despliegue de proxies inversos seguros con Nginx.
@@ -143,7 +143,7 @@ Ingeniería de sistemas, automatización de tareas y pipelines de entrega contin
 
 ---
 
-### 📊 Métricas de Ingeniería en GitHub
+### Métricas de Ingeniería en GitHub
 <div align="center">
   <img src="https://img.shields.io/badge/Repositorios_Publicos-{len(datos_perfil.get('repositorios', []))}-232F3E?style=for-the-badge&logo=github&logoColor=white" alt="repos"/>
   <img src="https://img.shields.io/badge/Estrellas_Totales-{datos_perfil.get('estadisticas', {}).get('total_estrellas', 0)}-f59e0b?style=for-the-badge&logo=apachespark&logoColor=white" alt="stars"/>
@@ -154,10 +154,10 @@ Ingeniería de sistemas, automatización de tareas y pipelines de entrega contin
 
 ---
 
-### 📫 Contacto Profesional
-- 💼 **LinkedIn:** [Izan Marcos Martínez](https://www.linkedin.com/in/izan-marcos-mart%C3%ADnez-913728369)
-- 🌐 **GitHub:** [@{usuario}](https://github.com/{usuario})
-- 📍 **Ubicación:** {datos_perfil.get('ubicacion', 'España')}
+### Contacto Profesional
+- **LinkedIn:** [Izan Marcos Martínez](https://www.linkedin.com/in/izan-marcos-mart%C3%ADnez-913728369)
+- **GitHub:** [@{usuario}](https://github.com/{usuario})
+- **Ubicación:** {datos_perfil.get('ubicacion', 'España')}
 """
 
 def responder_chat_ia(pregunta: str, datos_perfil: dict, historial: list = None) -> str:

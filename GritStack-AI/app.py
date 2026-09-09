@@ -24,7 +24,6 @@ from src.ui.dashboard import render_dashboard
 # Configuración inicial de la página
 st.set_page_config(
     page_title="GritStack AI | Developer Intelligence Hub",
-    page_icon="🚀",
     layout="wide",
     initial_sidebar_state="collapsed"
 )

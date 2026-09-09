@@ -25,11 +25,11 @@ def render_dashboard(datos_perfil: dict, readme_md: str):
     # 2. Hero del perfil con avatar, bio y stats
     render_hero(datos_perfil)
 
-    # 3. Navegación en 3 Pestañas Principales (Full-Width y Tipografía Moderna)
+    # 3. Navegación en 3 Pestañas Principales (Full-Width y Tipografía Sólida)
     tab_perfil, tab_chat, tab_cv = st.tabs([
-        "🚀 Perfil & README Studio",
-        "💬 Mentor IA (Staff Architect)",
-        "🎯 TailorCV Studio (ATS Matcher)"
+        "Perfil & README Studio",
+        "Mentor IA (Staff Architect)",
+        "TailorCV Studio (ATS Matcher)"
     ])
 
 

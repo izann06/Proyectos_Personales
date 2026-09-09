@@ -105,26 +105,26 @@ def generar_cv_fallback_dinamico(
 
     cv_markdown = f"""# {nombre}
 **{headline}**
-📍 {ubicacion} | 🌐 [GitHub](https://github.com/{usuario}) | 💼 [LinkedIn](https://www.linkedin.com/in/izan-marcos-mart%C3%ADnez-913728369)
+{ubicacion} | [GitHub](https://github.com/{usuario}) | [LinkedIn](https://www.linkedin.com/in/izan-marcos-mart%C3%ADnez-913728369)
 
 ---
 
-### 🎯 PERFIL PROFESIONAL
+### PERFIL PROFESIONAL
 {perfil}
 
 ---
 
-### 🛠️ COMPETENCIAS TÉCNICAS
+### COMPETENCIAS TÉCNICAS
 {competencias}
 
 ---
 
-### 🚀 PROYECTOS DESTACADOS DE INGENIERÍA
+### PROYECTOS DESTACADOS DE INGENIERÍA
 {proyectos}
 
 ---
 
-### 🎓 FORMACIÓN & DESARROLLO CONTINUO
+### FORMACIÓN & DESARROLLO CONTINUO
 - **Especialización Continua en Tecnologías de Vanguardia:** Arquitecturas de software modernas, computación en la nube y sistemas distribuidos.
 - **Grado Superior en Desarrollo de Aplicaciones Multiplataforma (DAM) / Sistemas:** Sólida base algorítmica, ingeniería de software y administración de sistemas.
 """
@@ -137,11 +137,11 @@ def generar_cv_fallback_dinamico(
             f"y la dispersión de tecnologías impedía posicionar al candidato de forma rotunda frente a los requisitos técnicos clave de la vacante."
         ),
         "errores_detectados": [
-            f"❌ Falta de alineación directa con los requisitos específicos del puesto '{puesto_objetivo}'.",
-            "❌ Ausencia de métricas cuantitativas de impacto (reducción de tiempos, optimización de costes, rendimiento).",
-            "❌ Anti-patrón de 'lista de tareas' en lugar de decisiones de arquitectura de ingeniería.",
-            "❌ Proyectos clave enterrados sin enlaces verificables al código ni explicación de trade-offs.",
-            f"❌ Carencia de densidad de palabras clave ATS estándar solicitadas para {puesto_objetivo}."
+            f"Falta de alineación directa con los requisitos específicos del puesto '{puesto_objetivo}'.",
+            "Ausencia de métricas cuantitativas de impacto (reducción de tiempos, optimización de costes, rendimiento).",
+            "Anti-patrón de 'lista de tareas' en lugar de decisiones de arquitectura de ingeniería.",
+            "Proyectos clave enterrados sin enlaces verificables al código ni explicación de trade-offs.",
+            f"Carencia de densidad de palabras clave ATS estándar solicitadas para {puesto_objetivo}."
         ],
         "score_optimizado_verde": 96,
         "puntos_fuertes_optimizados": [
@@ -256,26 +256,26 @@ IMPORTANTE: NO uses bloques de comillas triples (```) dentro de las etiquetas XM
 <cv_optimizado_markdown>
 # {nombre}
 **{puesto_objetivo} | (Keywords principales más relevantes para este rol)**
-📍 {ubicacion} | 🌐 [GitHub](https://github.com/{usuario}) | 💼 [LinkedIn](https://www.linkedin.com/in/izan-marcos-mart%C3%ADnez-913728369)
+{ubicacion} | [GitHub](https://github.com/{usuario}) | [LinkedIn](https://www.linkedin.com/in/izan-marcos-mart%C3%ADnez-913728369)
 
 ---
 
-### 🎯 PERFIL PROFESIONAL
+### PERFIL PROFESIONAL
 (Párrafo ejecutivo enfocado al 100% en las exigencias del rol)
 
 ---
 
-### 🛠️ COMPETENCIAS TÉCNICAS
+### COMPETENCIAS TÉCNICAS
 (4 o 5 categorías agrupadas estratégicamente según el rol solicitado)
 
 ---
 
-### 🚀 PROYECTOS DESTACADOS DE INGENIERÍA
+### PROYECTOS DESTACADOS DE INGENIERÍA
 (3 proyectos seleccionados y desarrollados con viñetas Google X-Y-Z orientadas al rol)
 
 ---
 
-### 🎓 FORMACIÓN & DESARROLLO TÉCNICO
+### FORMACIÓN & DESARROLLO TÉCNICO
 - Especialización continua en tecnologías aplicadas a {puesto_objetivo}.
 - Grado Superior en Desarrollo de Aplicaciones Multiplataforma (DAM) / Sistemas.
 </cv_optimizado_markdown>

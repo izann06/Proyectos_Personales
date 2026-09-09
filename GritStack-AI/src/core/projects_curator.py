@@ -97,7 +97,7 @@ def seleccionar_top_proyectos(datos_perfil: dict) -> list:
                 "stack": stack,
                 "url": r.get("url", f"https://github.com/{datos_perfil.get('usuario')}/{nombre}"),
                 "categoria": "DevOps & Cloud" if coincidencias > 0 else "Software Engineering",
-                "icono": "🚀",
+                "icono": "code",
                 "estrellas": stars
             }
         })
