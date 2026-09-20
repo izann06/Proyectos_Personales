@@ -102,6 +102,28 @@ Hay que decirle a Windows que abra una "puerta" específica (el puerto 2283) par
    ```
 4. En cuanto le des a Enter, el muro caerá. Vuelve a probar en tu móvil y verás que conecta al instante.
 
+### ⚠️ IMPORTANTE: Si desconectas el SSD externo y no carga la web (Error de montaje / ENOENT)
+
+Si desconectas físicamente tu disco SSD (`E:\`) para llevarte el ordenador a otro sitio mientras Docker sigue encendido, **al volver a conectarlo la web no cargará y la app del móvil perderá la conexión**.
+
+**¿Por qué ocurre?**
+Cuando retiras el cable USB del SSD, el motor interno de Docker (WSL2) pierde el enlace con la unidad `E:`. Aunque luego vuelvas a enchufar el SSD a Windows, Docker no lo remonta automáticamente en los contenedores que ya estaban ejecutándose. Immich busca sus archivos de verificación en la carpeta, no los encuentra (`ENOENT: no such file or directory`) y se apaga en bucle para no corromper la fototeca.
+
+**¿Cómo se soluciona en 3 segundos? (Script de 1 clic)**
+Tienes incluido en esta carpeta el archivo `reconectar_immich.bat`:
+1. Conecta tu SSD al PC (comprueba que Windows lo monte con la letra **`E:`**).
+2. Haz **doble clic en `reconectar_immich.bat`**.
+3. ¡Listo! El script remonta el disco en el subsistema de Docker y reinicia Immich al instante.
+
+**Solución alternativa por comandos (o reiniciar Docker):**
+```powershell
+# Opción por terminal:
+wsl -d docker-desktop mount -t drvfs E: /mnt/host/e
+docker restart immich_server
+
+# O bien: clic derecho en la ballena de Docker Desktop -> "Restart Docker Desktop"
+```
+
 ### Paso 5 — ¿Para qué sirve Dark Passenger entonces?
 
 Como has configurado Immich para que guarde las fotos **directamente en tu SSD** (`E:\`), Dark Passenger ya no necesita copiar esas fotos (porque ya están ahí físicamente).
@@ -132,6 +154,9 @@ Sí. Immich es un servidor que corre en tu PC. Si el PC está apagado, las fotos
 ### ¿Se borran las fotos de mi móvil?
 No, a menos que tú lo hagas manualmente. Immich solo copia, no borra nada del móvil.
 
+### ¿Se pueden duplicar fotos si reinstalo la app en el móvil?
+**No.** Immich calcula un hash criptográfico único por cada foto. Si la foto ya existe en el SSD, la marca como respaldada y solo sube las fotos nuevas que falten.
+
 ### Si se me rompe el SSD pero tengo el volumen de Docker... ¿salvo mis fotos?
 **NO.** Mucho cuidado con esto: el "volumen de Docker" (la base de datos) solo guarda *los metadatos* (nombres de los álbumes, las caras reconocidas, tus contraseñas, etc.). **Las fotos y vídeos físicos reales** se guardan en la carpeta `UPLOAD_LOCATION` (es decir, dentro de tu SSD).
 - Si se rompe el PC pero el SSD sobrevive: Estás a salvo. Tienes las fotos en el SSD.
@@ -149,8 +174,10 @@ Sin embargo, **sí es posible hacerlo** si configuras una red virtual segura (co
 |:---|:---|
 | Arrancar Immich | `docker compose up -d` |
 | Parar Immich | `docker compose down` |
+| Reconectar SSD si se desenchufó | Doble clic en `reconectar_immich.bat` |
 | Ver qué está pasando (logs) | `docker compose logs -f` |
 | Actualizar a la última versión | `docker compose pull && docker compose up -d` |
 | Ver si los contenedores están corriendo | `docker compose ps` |
 
 > Todos estos comandos se ejecutan desde esta carpeta (`immich-setup`).
+
